@@ -1,0 +1,20 @@
+services:
+
+  asterisk:
+    build:
+      context: ./asterisk
+      dockerfile: Dockerfile
+    container_name: nextelis-asterisk
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./asterisk/config/pjsip.conf:/etc/asterisk/pjsip.conf:ro
+      - ./asterisk/config/extensions.conf:/etc/asterisk/extensions.conf:ro
+      - ./asterisk/config/logger.conf:/etc/asterisk/logger.conf:ro
+      - ./asterisk/dynamic:/etc/asterisk/dynamic:rw
+      - asterisk-logs:/var/log/asterisk
+      - asterisk-spool:/var/spool/asterisk
+
+volumes:
+  asterisk-logs:
+  asterisk-spool:

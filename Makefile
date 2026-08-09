@@ -1,0 +1,50 @@
+.PHONY: up down restart build logs status phones check shell clean
+
+# ── Compose ────────────────────────────────────────────────
+up:
+	docker compose up -d
+
+build:
+	docker compose build
+
+down:
+	docker compose down
+
+restart-asterisk:
+	docker compose restart asterisk
+
+prune:
+	docker system prune -a --volumes
+
+# ── Logs ───────────────────────────────────────────────────
+logs-asterisk:
+	docker compose logs -f asterisk
+
+logs-tail:
+	docker exec nextelis-asterisk tail -f /var/log/asterisk/asterisk.log
+
+# ── Asterisk checks ────────────────────────────────────────
+phones:
+	docker exec nextelis-asterisk asterisk -rx "pjsip show endpoints"
+
+status:
+	docker exec nextelis-asterisk asterisk -rx "core show uptime"
+
+channels:
+	docker exec nextelis-asterisk asterisk -rx "core show channels"
+
+check:
+	docker exec nextelis-asterisk asterisk -rx "pjsip show endpoints"
+	docker exec nextelis-asterisk asterisk -rx "core show channels"
+	docker exec nextelis-asterisk asterisk -rx "core show uptime"
+
+# ── Shell ──────────────────────────────────────────────────
+shell:
+	docker exec -it nextelis-asterisk bash
+
+asterisk-cli:
+	docker exec -it nextelis-asterisk asterisk -rvvv
+
+# ── Clean ──────────────────────────────────────────────────
+clean:
+	docker compose down -v
