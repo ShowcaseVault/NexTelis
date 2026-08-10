@@ -1,5 +1,23 @@
 services:
 
+  postgres:
+    image: postgres:16
+    container_name: nextelis-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   asterisk:
     build:
       context: ./asterisk
@@ -7,6 +25,9 @@ services:
     container_name: nextelis-asterisk
     restart: unless-stopped
     network_mode: host
+    depends_on:
+      postgres:
+        condition: service_healthy
     volumes:
       - ./asterisk/config/pjsip.conf:/etc/asterisk/pjsip.conf:ro
       - ./asterisk/config/extensions.conf:/etc/asterisk/extensions.conf:ro
@@ -18,3 +39,4 @@ services:
 volumes:
   asterisk-logs:
   asterisk-spool:
+  postgres-data:

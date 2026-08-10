@@ -17,6 +17,16 @@ prune:
 	docker system prune -a --volumes
 
 # ── Logs ───────────────────────────────────────────────────
+logs-postgres:
+	docker compose logs -f postgres
+
+# ── Postgres ───────────────────────────────────────────────
+psql:
+	docker exec -it nextelis-postgres psql -U $${POSTGRES_USER:-nextelis} -d $${POSTGRES_DB:-nextelis}
+
+pg-ready:
+	docker exec nextelis-postgres pg_isready -U $${POSTGRES_USER:-nextelis} -d $${POSTGRES_DB:-nextelis}
+
 logs-asterisk:
 	docker compose logs -f asterisk
 
