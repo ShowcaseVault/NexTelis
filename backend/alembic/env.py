@@ -12,6 +12,9 @@ from backend.models import (
     ClaimCode,
     Device,
     Number,
+    PsAor,
+    PsAuth,
+    PsEndpoint,
     User,
 )  # noqa: F401  ensures mappers register
 

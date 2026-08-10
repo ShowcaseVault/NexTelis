@@ -7,6 +7,7 @@ from backend.db.session import get_db
 from backend.repositories.claim_code_repository import ClaimCodeRepository
 from backend.repositories.device_repository import DeviceRepository
 from backend.repositories.number_repository import NumberRepository
+from backend.repositories.pjsip_realtime_repository import PjsipRealtimeRepository
 from backend.repositories.user_repository import UserRepository
 from backend.services.device_service import DeviceService
 from backend.services.number_service import NumberService
@@ -31,6 +32,10 @@ def get_claim_code_repository(session: SessionDep) -> ClaimCodeRepository:
     return ClaimCodeRepository(session)
 
 
+def get_pjsip_realtime_repository(session: SessionDep) -> PjsipRealtimeRepository:
+    return PjsipRealtimeRepository(session)
+
+
 def get_user_service(
     user_repository: Annotated[UserRepository, Depends(get_user_repository)],
     claim_code_repository: Annotated[
@@ -43,8 +48,11 @@ def get_user_service(
 def get_number_service(
     number_repository: Annotated[NumberRepository, Depends(get_number_repository)],
     user_repository: Annotated[UserRepository, Depends(get_user_repository)],
+    pjsip_realtime_repository: Annotated[
+        PjsipRealtimeRepository, Depends(get_pjsip_realtime_repository)
+    ],
 ) -> NumberService:
-    return NumberService(number_repository, user_repository)
+    return NumberService(number_repository, user_repository, pjsip_realtime_repository)
 
 
 def get_device_service(

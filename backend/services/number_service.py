@@ -1,8 +1,10 @@
 import uuid
 
 from backend.core.exceptions import ConflictError, NotFoundError
+from backend.core.security import generate_sip_password
 from backend.models.number import Number
 from backend.repositories.number_repository import NumberRepository
+from backend.repositories.pjsip_realtime_repository import PjsipRealtimeRepository
 from backend.repositories.user_repository import UserRepository
 from backend.schemas.number import NumberCreate
 
@@ -12,9 +14,11 @@ class NumberService:
         self,
         number_repository: NumberRepository,
         user_repository: UserRepository,
+        pjsip_realtime_repository: PjsipRealtimeRepository,
     ) -> None:
         self.number_repository = number_repository
         self.user_repository = user_repository
+        self.pjsip_realtime_repository = pjsip_realtime_repository
 
     async def assign_number(self, user_id: uuid.UUID, payload: NumberCreate) -> Number:
         user = await self.user_repository.get(user_id)
@@ -28,7 +32,16 @@ class NumberService:
             raise ConflictError(f"number {payload.value!r} is already taken")
 
         number = self.number_repository.add(
-            Number(value=payload.value, user_id=user_id)
+            Number(
+                value=payload.value,
+                user_id=user_id,
+                sip_password=generate_sip_password(),
+            )
+        )
+        await self.number_repository.flush()
+
+        self.pjsip_realtime_repository.upsert_for_number(
+            number.value, number.sip_password
         )
         await self.number_repository.commit()
         return number
