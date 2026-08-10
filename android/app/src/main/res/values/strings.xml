@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">NexTelis</string>
+
+    <string name="status_permissions_denied">Permissions denied</string>
+    <string name="status_account_enabled">NexTelis enabled ✓\nOpen your dialer and call — pick NexTelis when prompted</string>
+    <string name="status_account_registered_not_enabled">NexTelis registered, but not enabled.\nTap \"Enable NexTelis calling account\" below, then switch NexTelis on. Your regular SIM is not affected.</string>
+    <string name="error_open_calling_accounts_failed">Couldn\'t open calling accounts settings</string>
 </resources>

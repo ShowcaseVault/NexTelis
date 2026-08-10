@@ -8,9 +8,14 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.showcasevault.nextelis.account.AccountStatus
 import com.showcasevault.nextelis.account.PhoneAccountManager
 import com.showcasevault.nextelis.permissions.PermissionManager
 
+/**
+ * Entry screen. Responsible only for UI wiring — account/permission logic
+ * lives in [PhoneAccountManager] and [PermissionManager].
+ */
 class MainActivity : AppCompatActivity() {
 
     private lateinit var statusText: TextView
@@ -20,28 +25,19 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         statusText = findViewById(R.id.statusText)
+        findViewById<Button>(R.id.btnEnableAccount).setOnClickListener { openCallingAccountsSettings() }
+        findViewById<Button>(R.id.btnTestCall).setOnClickListener { openNativeDialer() }
 
         PermissionManager.logStatus(this)
-
-        if (PermissionManager.allGranted(this)) {
-            registerAccount()
-        } else {
-            PermissionManager.requestAll(this)
-        }
-
-        findViewById<Button>(R.id.btnEnableAccount).setOnClickListener {
-            openCallingAccountsSettings()
-        }
-
-        findViewById<Button>(R.id.btnTestCall).setOnClickListener {
-            openNativeDialer()
-        }
+        ensurePermissionsThenRegister()
     }
 
     override fun onResume() {
         super.onResume()
+        // Reflects any change the user made in system Settings (e.g. enabling
+        // the account) while this activity was in the background.
         if (PhoneAccountManager.isRegistered(this)) {
-            updateStatus()
+            refreshStatusText()
         }
     }
 
@@ -51,42 +47,48 @@ class MainActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == PermissionManager.REQUEST_CODE) {
-            if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                registerAccount()
-            } else {
-                statusText.text = "Permissions denied"
-            }
+        if (requestCode != PermissionManager.REQUEST_CODE) return
+
+        if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+            registerAccount()
+        } else {
+            statusText.text = getString(R.string.status_permissions_denied)
+        }
+    }
+
+    private fun ensurePermissionsThenRegister() {
+        if (PermissionManager.allGranted(this)) {
+            registerAccount()
+        } else {
+            PermissionManager.requestAll(this)
         }
     }
 
     private fun registerAccount() {
         PhoneAccountManager.register(this)
-        updateStatus()
+        refreshStatusText()
     }
 
-    private fun updateStatus() {
-        statusText.text = if (PhoneAccountManager.isEnabled(this)) {
-            "NexTelis enabled ✓\nOpen your dialer and call — pick NexTelis when prompted"
-        } else {
-            "NexTelis registered, but not enabled.\nTap \"Enable NexTelis calling account\" below, " +
-                "then switch NexTelis on. Your regular SIM is not affected."
+    private fun refreshStatusText() {
+        val messageRes = when (PhoneAccountManager.getStatus(this)) {
+            AccountStatus.ENABLED -> R.string.status_account_enabled
+            AccountStatus.REGISTERED_DISABLED,
+            AccountStatus.NOT_REGISTERED -> R.string.status_account_registered_not_enabled
         }
+        statusText.text = getString(messageRes)
     }
 
     private fun openCallingAccountsSettings() {
-        val intent = Intent(TelecomManager.ACTION_CHANGE_PHONE_ACCOUNTS)
         try {
-            startActivity(intent)
+            startActivity(Intent(TelecomManager.ACTION_CHANGE_PHONE_ACCOUNTS))
         } catch (e: Exception) {
-            Toast.makeText(this, "Couldn't open calling accounts settings", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.error_open_calling_accounts_failed), Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun openNativeDialer() {
-        // Just open the native Samsung dialer
-        // Android will show SIM / NexTelis chooser
-        val intent = Intent(Intent.ACTION_DIAL)
-        startActivity(intent)
+        // Opens the device's default dialer; Android shows the SIM / NexTelis
+        // account chooser itself once the account is enabled.
+        startActivity(Intent(Intent.ACTION_DIAL))
     }
 }
