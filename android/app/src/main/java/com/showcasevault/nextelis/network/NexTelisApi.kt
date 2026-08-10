@@ -49,7 +49,8 @@ data class NumberRead(
     val value: String,
     val is_active: Boolean,
     val user_id: UUID,
-    val created_at: String
+    val created_at: String,
+    val sip_password: String
 )
 
 // Mirrors backend/api/v1/routes (users, devices, numbers) — see docs/ARCHITECTURE.md for the control-plane contract.

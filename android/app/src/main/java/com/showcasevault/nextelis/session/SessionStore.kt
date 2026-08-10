@@ -13,6 +13,7 @@ object SessionStore {
     private const val KEY_DEVICE_TOKEN = "device_token"
     private const val KEY_DISPLAY_NAME = "display_name"
     private const val KEY_NUMBER_VALUE = "number_value"
+    private const val KEY_SIP_PASSWORD = "sip_password"
 
     private fun prefs(context: Context) =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -25,8 +26,11 @@ object SessionStore {
             .apply()
     }
 
-    fun saveNumber(context: Context, numberValue: String) {
-        prefs(context).edit().putString(KEY_NUMBER_VALUE, numberValue).apply()
+    fun saveNumber(context: Context, numberValue: String, sipPassword: String) {
+        prefs(context).edit()
+            .putString(KEY_NUMBER_VALUE, numberValue)
+            .putString(KEY_SIP_PASSWORD, sipPassword)
+            .apply()
     }
 
     fun getUserId(context: Context): String? = prefs(context).getString(KEY_USER_ID, null)
@@ -36,6 +40,8 @@ object SessionStore {
     fun getDisplayName(context: Context): String? = prefs(context).getString(KEY_DISPLAY_NAME, null)
 
     fun getNumberValue(context: Context): String? = prefs(context).getString(KEY_NUMBER_VALUE, null)
+
+    fun getSipPassword(context: Context): String? = prefs(context).getString(KEY_SIP_PASSWORD, null)
 
     fun isPaired(context: Context): Boolean = getDeviceToken(context) != null
 

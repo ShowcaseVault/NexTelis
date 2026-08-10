@@ -75,3 +75,55 @@ on any Android 12+ device.
 `TelecomManager` reads in `PhoneAccountManager` with a `SecurityException`
 catch so a missing/denied permission degrades to "not enabled" instead of
 crashing the app, on any current or future Android version/OEM variant.
+
+---
+
+## SIP/RTP client choice: Linphone SDK over raw PJSIP
+
+The Telecom `ConnectionService`/`Connection` scaffolding (`android/.../telecom/`)
+only fakes call states (`setDialing()`, `setRinging()`) — there is no actual
+SIP/RTP client in the app, so NexTelis cannot register as a PJSIP endpoint
+or carry real audio. Asterisk cannot fix this from the server side: SIP
+requires an actual endpoint (client) on the device, exactly the role Zoiper
+plays today. Asterisk (server) and the device's SIP client are two
+different, necessary halves.
+
+**Options evaluated:**
+
+* **Raw PJSIP (pjsua2):** No maintained Android AAR exists (the last known
+  one, `com.pjdroid:pjdroid`, was abandoned in 2021). Would require building
+  PJSIP from source with the NDK and hand-writing SWIG bindings — realistically
+  weeks of build/toolchain work before a first call connects, with no current
+  reference implementation to build from (CSipSimple/sipdroid are 10+ years dead).
+* **Linphone SDK (liblinphone):** Official, actively maintained AAR from
+  Belledonne Communications, hosted on their own Maven repo (not Central).
+  Handles SIP digest auth, INVITE, RTP (ulaw/alaw/Opus), and background
+  operation out of the box. Estimated same-day integration to a first working
+  call against our existing Asterisk PJSIP-realtime config.
+
+**Decision:** Use **Linphone SDK**
+(`org.linphone:linphone-sdk-android`, repo `https://download.linphone.org/maven_repository`).
+Existing `NexTelisConnectionService`/`NexTelisConnection` stay as the Android
+Telecom-facing layer (needed for native dialer integration, per
+`docs/PROJECT.md` §2) but now drive a Linphone `Core` instance instead of a
+fake state machine, rather than being replaced by Linphone's own call UI.
+
+**Licensing note:** Linphone SDK is dual-licensed — free under AGPLv3, or a
+paid commercial license from Belledonne Communications for closed-source
+distribution. Decision for now: accept AGPLv3 for Pilot v0/v1 development
+and testing. **This must be revisited before any closed-source or commercial
+launch** — AGPLv3 requires that if NexTelis is distributed, its full source
+must be made available to users.
+
+**Known Android 12+ gotchas to design around:**
+* Foreground service for calls needs `FOREGROUND_SERVICE_TYPE_PHONE_CALL`
+  (Android 14 rejects untyped/mismatched foreground service starts).
+* Should still register as a `CAPABILITY_SELF_MANAGED` Telecom connection on
+  top of Linphone for proper system call UI/Bluetooth routing — this layer
+  isn't fully turnkey in Linphone's Android SDK.
+* OEM battery managers (Xiaomi/Oppo/Vivo/Huawei, and likely OnePlus per our
+  existing OxygenOS findings above) aggressively kill background SIP
+  keep-alive; will need battery-optimization exemption prompts.
+* Audio focus/routing (Bluetooth/wired/speaker) must be bridged through
+  `Connection.onCallAudioStateChanged` even with Linphone managing most of
+  it internally.

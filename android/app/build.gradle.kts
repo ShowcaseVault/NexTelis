@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.moshi.adapters)
     implementation(libs.kotlin.reflect)
     implementation(libs.okhttp.logging)
+    implementation(libs.linphone.sdk.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)

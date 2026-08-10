@@ -3,8 +3,14 @@ package com.showcasevault.nextelis.telecom
 import android.telecom.Connection
 import android.telecom.DisconnectCause
 import android.util.Log
+import com.showcasevault.nextelis.sip.SipManager
 
-class NexTelisConnection : Connection() {
+/**
+ * Telecom-facing half of a call. Real signaling/audio is owned by
+ * [SipManager] (Linphone) — this class only forwards user actions
+ * (answer/hold/hangup) to it and reflects state changes back.
+ */
+class NexTelisConnection(private val isIncoming: Boolean) : Connection() {
 
     companion object {
         private const val TAG = "NexTelisConnection"
@@ -19,7 +25,7 @@ class NexTelisConnection : Connection() {
 
     override fun onAnswer() {
         Log.d(TAG, "onAnswer")
-        setActive()
+        SipManager.answerCurrentCall()
     }
 
     override fun onHold() {
@@ -34,12 +40,21 @@ class NexTelisConnection : Connection() {
 
     override fun onDisconnect() {
         Log.d(TAG, "onDisconnect")
+        SipManager.endCurrentCall()
         setDisconnected(DisconnectCause(DisconnectCause.LOCAL))
         destroy()
     }
 
     override fun onAbort() {
         Log.d(TAG, "onAbort")
+        SipManager.endCurrentCall()
+        destroy()
+    }
+
+    override fun onReject() {
+        Log.d(TAG, "onReject")
+        SipManager.endCurrentCall()
+        setDisconnected(DisconnectCause(DisconnectCause.REJECTED))
         destroy()
     }
 }

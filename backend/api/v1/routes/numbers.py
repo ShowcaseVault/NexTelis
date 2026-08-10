@@ -3,7 +3,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from backend.api.deps import get_number_service
+from backend.api.deps import CurrentDeviceDep, get_number_service
 from backend.core.exceptions import ConflictError, NotFoundError
 from backend.schemas.number import NumberRead
 from backend.services.number_service import NumberService
@@ -13,8 +13,22 @@ router = APIRouter(prefix="/users/{user_id}/number", tags=["numbers"])
 NumberServiceDep = Annotated[NumberService, Depends(get_number_service)]
 
 
+def _require_own_user(user_id: uuid.UUID, caller: CurrentDeviceDep) -> None:
+    """NumberRead now includes sip_password — these endpoints must only
+    ever be reachable by the device that owns user_id, never by user_id
+    alone as a path parameter."""
+    if caller.user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="device does not belong to this user",
+        )
+
+
 @router.post("", response_model=NumberRead, status_code=status.HTTP_201_CREATED)
-async def assign_number(user_id: uuid.UUID, service: NumberServiceDep) -> NumberRead:
+async def assign_number(
+    user_id: uuid.UUID, caller: CurrentDeviceDep, service: NumberServiceDep
+) -> NumberRead:
+    _require_own_user(user_id, caller)
     try:
         return await service.assign_number(user_id)
     except NotFoundError as exc:
@@ -28,7 +42,10 @@ async def assign_number(user_id: uuid.UUID, service: NumberServiceDep) -> Number
 
 
 @router.get("", response_model=NumberRead)
-async def get_number(user_id: uuid.UUID, service: NumberServiceDep) -> NumberRead:
+async def get_number(
+    user_id: uuid.UUID, caller: CurrentDeviceDep, service: NumberServiceDep
+) -> NumberRead:
+    _require_own_user(user_id, caller)
     try:
         return await service.get_number_for_user(user_id)
     except NotFoundError as exc:

@@ -4,7 +4,6 @@ import android.os.Build
 import android.os.Bundle
 import android.widget.Button
 import android.widget.LinearLayout
-import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -15,6 +14,7 @@ import com.showcasevault.nextelis.network.NexTelisApiClient
 import com.showcasevault.nextelis.network.UserCreateRequest
 import com.showcasevault.nextelis.network.UserWithClaimCode
 import com.showcasevault.nextelis.session.SessionStore
+import com.showcasevault.nextelis.ui.LoadingOverlay
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.OffsetDateTime
@@ -33,7 +33,7 @@ class PairDeviceActivity : AppCompatActivity() {
     private lateinit var textClaimCode: TextView
     private lateinit var textClaimExpiry: TextView
     private lateinit var textError: TextView
-    private lateinit var progress: ProgressBar
+    private lateinit var loadingOverlay: LoadingOverlay
     private lateinit var btnRegister: Button
     private lateinit var btnClaimDevice: Button
 
@@ -49,7 +49,7 @@ class PairDeviceActivity : AppCompatActivity() {
         textClaimCode = findViewById(R.id.textClaimCode)
         textClaimExpiry = findViewById(R.id.textClaimExpiry)
         textError = findViewById(R.id.textError)
-        progress = findViewById(R.id.progress)
+        loadingOverlay = LoadingOverlay(findViewById(android.R.id.content))
         btnRegister = findViewById(R.id.btnRegister)
         btnClaimDevice = findViewById(R.id.btnClaimDevice)
 
@@ -130,7 +130,7 @@ class PairDeviceActivity : AppCompatActivity() {
     }
 
     private fun setLoading(loading: Boolean) {
-        progress.visibility = if (loading) ProgressBar.VISIBLE else ProgressBar.GONE
+        if (loading) loadingOverlay.show() else loadingOverlay.hide()
         btnRegister.isEnabled = !loading
         btnClaimDevice.isEnabled = !loading
     }

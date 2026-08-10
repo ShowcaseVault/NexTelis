@@ -33,11 +33,16 @@
     <string name="home_greeting">Hey %1$s</string>
     <string name="home_your_number">Your NexTelis number</string>
     <string name="status_account_enabled">Ready to receive calls ✓</string>
+    <string name="status_service_off">Tap to turn on</string>
     <string name="status_account_registered_not_enabled">Not enabled yet</string>
     <string name="status_account_not_registered">Not registered</string>
-    <string name="home_enable_hint">Open Settings and turn NexTelis on as a calling account. Your SIM stays exactly as it is.</string>
-    <string name="btn_enable_account">Enable calling account</string>
+    <string name="home_enable_hint">Tap the button above, then turn NexTelis on as a calling account in Settings. Your SIM stays exactly as it is.</string>
     <string name="btn_call_via_nextelis">Call using NexTelis</string>
     <string name="home_how_title">How to call with NexTelis</string>
     <string name="home_how_body">Dial any number as usual. When Android asks which account to call with, choose NexTelis.</string>
+
+    <!-- SIP service -->
+    <string name="sip_notification_channel_name">NexTelis calling</string>
+    <string name="sip_notification_title">NexTelis is active</string>
+    <string name="sip_notification_text">Registered as %1$s — ready to receive calls</string>
 </resources>

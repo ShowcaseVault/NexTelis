@@ -11,6 +11,7 @@ moshi = "1.15.1"
 okhttp = "4.12.0"
 coroutines = "1.8.0"
 lifecycle = "2.7.0"
+linphoneSdk = "5.4.124"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -27,6 +28,7 @@ kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", vers
 okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
+linphone-sdk-android = { group = "org.linphone", name = "linphone-sdk-android", version.ref = "linphoneSdk" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

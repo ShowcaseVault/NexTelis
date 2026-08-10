@@ -23,10 +23,16 @@ object PhoneAccountManager {
 
     fun register(context: Context) {
         val handle = getHandle(context)
+        // CAPABILITY_CALL_PROVIDER (not SELF_MANAGED): self-managed apps
+        // never receive calls dialed from the native Phone app's dialpad —
+        // they're expected to call TelecomManager.placeCall() from their own
+        // UI instead. Native-dialer-initiated calling is the whole point of
+        // this project (docs/PROJECT.md §2), so we stay call-provider even
+        // though NexTelis drives its own SIP/RTP rather than a modem/SIM.
         val account = PhoneAccount.builder(handle, ACCOUNT_LABEL)
             .setCapabilities(
-                PhoneAccount.CAPABILITY_CALL_PROVIDER or      // appear as a calling provider
-                        PhoneAccount.CAPABILITY_PLACE_EMERGENCY_CALLS // required to show in chooser
+                PhoneAccount.CAPABILITY_CALL_PROVIDER or
+                        PhoneAccount.CAPABILITY_PLACE_EMERGENCY_CALLS
             )
             .build()
 

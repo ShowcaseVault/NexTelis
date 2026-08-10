@@ -2,13 +2,13 @@ package com.showcasevault.nextelis.onboarding
 
 import android.os.Bundle
 import android.widget.Button
-import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.showcasevault.nextelis.R
 import com.showcasevault.nextelis.network.NexTelisApiClient
 import com.showcasevault.nextelis.session.SessionStore
+import com.showcasevault.nextelis.ui.LoadingOverlay
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -22,7 +22,7 @@ class GetNumberActivity : AppCompatActivity() {
     private lateinit var textNumberCaption: TextView
     private lateinit var textNumberValue: TextView
     private lateinit var textError: TextView
-    private lateinit var progress: ProgressBar
+    private lateinit var loadingOverlay: LoadingOverlay
     private lateinit var btnGetNumber: Button
     private lateinit var btnContinue: Button
 
@@ -33,7 +33,7 @@ class GetNumberActivity : AppCompatActivity() {
         textNumberCaption = findViewById(R.id.textNumberCaption)
         textNumberValue = findViewById(R.id.textNumberValue)
         textError = findViewById(R.id.textError)
-        progress = findViewById(R.id.progress)
+        loadingOverlay = LoadingOverlay(findViewById(android.R.id.content))
         btnGetNumber = findViewById(R.id.btnGetNumber)
         btnContinue = findViewById(R.id.btnContinue)
 
@@ -49,7 +49,7 @@ class GetNumberActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val number = NexTelisApiClient.api.assignNumber(userId)
-                SessionStore.saveNumber(this@GetNumberActivity, number.value)
+                SessionStore.saveNumber(this@GetNumberActivity, number.value, number.sip_password)
                 showAssignedNumber(number.value)
             } catch (e: Exception) {
                 showError(getString(R.string.error_network_generic, e.message ?: e.javaClass.simpleName))
@@ -68,7 +68,7 @@ class GetNumberActivity : AppCompatActivity() {
     }
 
     private fun setLoading(loading: Boolean) {
-        progress.visibility = if (loading) ProgressBar.VISIBLE else ProgressBar.GONE
+        if (loading) loadingOverlay.show() else loadingOverlay.hide()
         btnGetNumber.isEnabled = !loading
     }
 

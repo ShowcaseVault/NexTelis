@@ -19,6 +19,12 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        // Linphone SDK — not published to Maven Central. See docs/FINDINGS.md
+        // ("SIP/RTP client choice") for why this library was chosen.
+        maven {
+            url = uri("https://download.linphone.org/maven_repository")
+            content { includeGroup("org.linphone") }
+        }
     }
 }
 

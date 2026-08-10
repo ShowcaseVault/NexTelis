@@ -27,6 +27,10 @@ object PermissionManager {
             // TelecomManager.getPhoneAccount() enforces READ_PHONE_NUMBERS on API 31+
             permissions.add(Manifest.permission.READ_PHONE_NUMBERS)
         }
+        // SipCallService's persistent notification needs this on Android 13+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
         return permissions.toTypedArray()
     }
 

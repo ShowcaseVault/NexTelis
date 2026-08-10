@@ -1,6 +1,8 @@
 package com.showcasevault.nextelis.network
 
 import com.showcasevault.nextelis.BuildConfig
+import com.showcasevault.nextelis.NexTelisApplication
+import com.showcasevault.nextelis.session.SessionStore
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
@@ -33,6 +35,7 @@ object NexTelisApiClient {
         }
 
         val httpClient = OkHttpClient.Builder()
+            .addInterceptor(::attachDeviceToken)
             .addInterceptor(logging)
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
@@ -43,5 +46,19 @@ object NexTelisApiClient {
             .client(httpClient)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
+    }
+
+    // Endpoints like /users/{id}/number require the caller's device_token —
+    // see backend/api/v1/routes/numbers.py's _require_own_user check.
+    private fun attachDeviceToken(chain: okhttp3.Interceptor.Chain): okhttp3.Response {
+        val token = SessionStore.getDeviceToken(NexTelisApplication.instance)
+        val request = if (token != null) {
+            chain.request().newBuilder()
+                .addHeader("Authorization", "Bearer $token")
+                .build()
+        } else {
+            chain.request()
+        }
+        return chain.proceed(request)
     }
 }
