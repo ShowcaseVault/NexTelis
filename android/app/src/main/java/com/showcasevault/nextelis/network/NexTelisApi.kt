@@ -11,6 +11,10 @@ data class UserCreateRequest(
     val display_name: String
 )
 
+data class ClaimCodeRequest(
+    val email: String
+)
+
 data class UserRead(
     val id: UUID,
     val email: String,
@@ -58,6 +62,9 @@ interface NexTelisApi {
 
     @POST("api/v1/users")
     suspend fun registerUser(@Body body: UserCreateRequest): UserWithClaimCode
+
+    @POST("api/v1/users/claim-code")
+    suspend fun reissueClaimCode(@Body body: ClaimCodeRequest): UserWithClaimCode
 
     @POST("api/v1/devices/claim")
     suspend fun claimDevice(@Body body: DeviceClaimRequest): DeviceClaimResponse

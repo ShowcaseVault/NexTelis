@@ -230,3 +230,6 @@ android/.idea/
 android/*.iml
 android/captures/
 android/.cxx/
+
+# APK builds are distributed via GitHub Releases, not committed to git
+releases/*.apk

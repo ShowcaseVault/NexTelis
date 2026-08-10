@@ -127,3 +127,45 @@ must be made available to users.
 * Audio focus/routing (Bluetooth/wired/speaker) must be bridged through
   `Connection.onCallAudioStateChanged` even with Linphone managing most of
   it internally.
+
+---
+
+## Two account-lifecycle bugs found during real-device testing
+
+### Bug: re-registering a PhoneAccount silently disables it
+
+Symptom: enabling NexTelis in Settings > Calling accounts, then returning to
+the app, showed it as disabled again — and this happened even inside the
+Settings screen itself once the app's activity was recreated in the
+background.
+
+Root cause: `TelecomManager.registerPhoneAccount()` unconditionally resets
+`isEnabled` to `false`, even for an already-registered account the user had
+just enabled — this is intentional Android behavior (an app can't silently
+re-enable itself). `HomeActivity.onCreate()` was calling
+`PhoneAccountManager.register()` unconditionally on every creation, and
+returning from the system Settings screen recreates the activity, so every
+trip there immediately undid the toggle just flipped.
+
+**Fix:** `PhoneAccountManager.register()` is now a no-op if the account is
+already registered.
+
+### Gap: no way to re-pair an existing user to a new device
+
+Symptom: uninstalling and reinstalling the app (which wipes local
+`SessionStore`) and registering with the same email returns `409 Conflict`
+from `POST /users` — the backend user/number still exist, but the app had
+no path to recover the pairing.
+
+**Fix:** added `POST /users/claim-code` (`{email}` → fresh `claim_code` for
+the existing user), and the Android app now falls back to it automatically
+when registration 409s.
+
+**Pilot-stage security tradeoff, accepted deliberately:** this endpoint has
+no password or email verification — knowing a registered email is
+sufficient to mint a new claim code and pair a device to that account. This
+is acceptable for Pilot v0 (no real users, no production security
+requirements per `docs/ROADMAP.md`) but is a real account-takeover vector
+and **must be revisited before v3 (Security)** — e.g. requiring a
+confirmation link sent to the email, or requiring proof from an existing
+paired device when one exists.

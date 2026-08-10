@@ -20,8 +20,18 @@ class UserRead(BaseModel):
 
 
 class UserWithClaimCode(BaseModel):
-    """Returned once, right after a user is created."""
+    """Returned once, right after a user is created or a claim code is reissued."""
 
     user: UserRead
     claim_code: str
     claim_code_expires_at: datetime
+
+
+class ClaimCodeRequest(BaseModel):
+    """Re-pair an existing user (e.g. after reinstalling the app).
+
+    Pilot-stage tradeoff: proof of ownership is the claim code alone once
+    issued, with no password/email verification — see docs/FINDINGS.md.
+    """
+
+    email: EmailStr

@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.textfield.TextInputEditText
 import com.showcasevault.nextelis.R
+import com.showcasevault.nextelis.network.ClaimCodeRequest
 import com.showcasevault.nextelis.network.DeviceClaimRequest
 import com.showcasevault.nextelis.network.NexTelisApiClient
 import com.showcasevault.nextelis.network.UserCreateRequest
@@ -16,6 +17,7 @@ import com.showcasevault.nextelis.network.UserWithClaimCode
 import com.showcasevault.nextelis.session.SessionStore
 import com.showcasevault.nextelis.ui.LoadingOverlay
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.format.DateTimeParseException
@@ -70,9 +72,21 @@ class PairDeviceActivity : AppCompatActivity() {
         setLoading(true)
         lifecycleScope.launch {
             try {
-                val result = NexTelisApiClient.api.registerUser(
-                    UserCreateRequest(email = email, display_name = displayName)
-                )
+                val result = try {
+                    NexTelisApiClient.api.registerUser(
+                        UserCreateRequest(email = email, display_name = displayName)
+                    )
+                } catch (e: HttpException) {
+                    // 409 = this email is already registered — most commonly
+                    // the app was reinstalled and lost its local session, but
+                    // the backend user still exists. Re-pair instead of failing.
+                    // See backend/api/v1/routes/users.py's /claim-code endpoint.
+                    if (e.code() == 409) {
+                        NexTelisApiClient.api.reissueClaimCode(ClaimCodeRequest(email = email))
+                    } else {
+                        throw e
+                    }
+                }
                 registration = result
                 showClaimStep(result)
             } catch (e: Exception) {

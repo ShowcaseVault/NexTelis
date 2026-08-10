@@ -5,7 +5,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from backend.api.deps import get_user_service
 from backend.core.exceptions import ConflictError, NotFoundError
-from backend.schemas.user import UserCreate, UserRead, UserWithClaimCode
+from backend.schemas.user import (
+    ClaimCodeRequest,
+    UserCreate,
+    UserRead,
+    UserWithClaimCode,
+)
 from backend.services.user_service import UserService
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -29,6 +34,20 @@ async def register_user(
 async def get_user(user_id: uuid.UUID, service: UserServiceDep) -> UserRead:
     try:
         return await service.get_user(user_id)
+    except NotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
+        ) from exc
+
+
+@router.post("/claim-code", response_model=UserWithClaimCode)
+async def reissue_claim_code(
+    payload: ClaimCodeRequest, service: UserServiceDep
+) -> UserWithClaimCode:
+    """Re-pair an existing user to a new device — e.g. after reinstalling
+    the app, when POST /users 409s because the email already exists."""
+    try:
+        return await service.reissue_claim_code(payload.email)
     except NotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)

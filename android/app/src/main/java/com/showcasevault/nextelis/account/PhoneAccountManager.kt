@@ -22,6 +22,15 @@ object PhoneAccountManager {
     }
 
     fun register(context: Context) {
+        // registerPhoneAccount() unconditionally resets isEnabled back to
+        // false, even for an already-registered account the user had just
+        // enabled in Settings — this is intentional Android behavior (an
+        // app can't silently re-enable itself). So this must be a no-op
+        // once registered, or every HomeActivity recreation (e.g. returning
+        // from the Calling Accounts Settings screen) would immediately
+        // undo the toggle the user just flipped on.
+        if (isRegistered(context)) return
+
         val handle = getHandle(context)
         // CAPABILITY_CALL_PROVIDER (not SELF_MANAGED): self-managed apps
         // never receive calls dialed from the native Phone app's dialpad —

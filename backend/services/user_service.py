@@ -31,6 +31,27 @@ class UserService:
         )
         await self.user_repository.flush()
 
+        return await self._issue_claim_code(user)
+
+    async def get_user(self, user_id: uuid.UUID) -> User:
+        user = await self.user_repository.get(user_id)
+        if user is None:
+            raise NotFoundError(f"user {user_id} not found")
+        return user
+
+    async def reissue_claim_code(self, email: str) -> UserWithClaimCode:
+        """Re-pair an existing user to a new device (e.g. after a reinstall).
+
+        Pilot-stage tradeoff: knowing the email is sufficient to mint a new
+        claim code, with no further verification — see docs/FINDINGS.md.
+        """
+        user = await self.user_repository.get_by_email(email)
+        if user is None:
+            raise NotFoundError(f"no user with email {email!r}")
+
+        return await self._issue_claim_code(user)
+
+    async def _issue_claim_code(self, user: User) -> UserWithClaimCode:
         claim_code = self.claim_code_repository.add(
             ClaimCode(
                 code=generate_claim_code(),
@@ -45,9 +66,3 @@ class UserService:
             claim_code=claim_code.code,
             claim_code_expires_at=claim_code.expires_at,
         )
-
-    async def get_user(self, user_id: uuid.UUID) -> User:
-        user = await self.user_repository.get(user_id)
-        if user is None:
-            raise NotFoundError(f"user {user_id} not found")
-        return user
