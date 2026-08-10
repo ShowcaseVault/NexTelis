@@ -1,6 +1,7 @@
 # NexTelis — Asterisk
 
-> **Status:** Realtime (ARA) wired up and verified locally
+> **Status:** Realtime (ARA) wired up and verified locally; CDR-to-Postgres wired up, not yet
+> verified against a real call (needs live SIP registration first)
 > **Purpose:** Explain what Asterisk is, what it does for NexTelis, and exactly how it's configured in this repo.
 
 ---
@@ -118,7 +119,9 @@ and reports zero endpoints (this happened during setup — see §8, Finding 2).
 | `res_odbc.conf` | Declares the `nextelis-pgsql` ODBC connection pool (`pre-connect => yes`) |
 | `odbcinst.ini` | Registers the `PostgreSQL` ODBC driver (points at `psqlodbcw.so`) |
 | `odbc.ini.template` | DSN template (`Servername`/`Port`/`Database`/`UserName`/`Password` as `${VAR}`), rendered to `/etc/odbc.ini` by the entrypoint via `envsubst`, so the real Postgres password (from root `.env`) is never baked into the image or committed to git |
-| `modules.conf` | Forces `res_odbc.so` and, critically, `res_config_odbc.so` to load (see Finding 2) |
+| `modules.conf` | Forces `res_odbc.so`, `res_config_odbc.so`, and `cdr_odbc.so` to load (see Finding 2) |
+| `cdr.conf` | Enables CDR logging generally (`enable=yes`, logs unanswered calls too) |
+| `cdr_odbc.conf` | Points the CDR engine at the same `nextelis-pgsql` DSN, table `cdr` |
 | `extensions.conf` | Dialplan — see §6 |
 | `logger.conf` | Unchanged — Asterisk log verbosity/output targets |
 
@@ -170,6 +173,25 @@ above exist only in the migration source, for whoever needs to simulate a claime
 `9001`/`9002` were picked instead of the doc's illustrative `7001`/`7002` (see
 `docs/ARCHITECTURE.md` §7) purely to avoid a unique-constraint collision with a number a developer
 had already created by hand through the live API during backend testing.
+
+### 5.6 CDR (call detail records)
+
+For debugging — "did this call actually happen, who was on it, how long, did it fail" — Asterisk
+writes one row per call to the `cdr` table via `cdr_odbc.so`, using the same `nextelis-pgsql` DSN
+as PJSIP realtime. No new ODBC/driver setup was needed, only `cdr.conf` + `cdr_odbc.conf` +
+loading `cdr_odbc.so` in `modules.conf`.
+
+Schema (`backend/models/cdr.py`, Asterisk's standard CDR field set, not a NexTelis convention):
+`id`, `calldate`, `clid`, `src`, `dst`, `dcontext`, `channel`, `dstchannel`, `lastapp`, `lastdata`,
+`duration`, `billsec`, `disposition` (`ANSWERED`/`NO ANSWER`/`BUSY`/`FAILED`), `amaflags`,
+`accountcode`, `uniqueid`, `userfield`.
+
+This is intentionally the *least*-effort version: no retention policy, no indexes beyond the
+primary key, no correlation back to `numbers`/`users` (`src`/`dst` are just the raw extension
+strings — join manually against `numbers.value` if needed). Good enough to answer "what happened
+on this call" during development; would need hardening (indexes on `src`/`dst`/`calldate`,
+retention/archival, maybe a proper FK-friendly view) before being relied on for anything
+production-facing like billing or analytics.
 
 ---
 
@@ -266,8 +288,6 @@ none of which is needed for basic register-and-dial, which works without it.
 - No TLS/SRTP — signaling and media are plaintext UDP, consistent with `docs/ARCHITECTURE.md` §9
   ("Advanced security will be developed later")
 - No AMI usage (see §7)
-- No CDR (call detail record) storage — Asterisk's `cdr_adaptive_odbc`/`cdr_odbc` modules are
-  loaded (bundled with the base package) but not configured against any table
 - No dialplan beyond "ring the matching PJSIP endpoint" — no voicemail, no IVR, no call forwarding
 - `max_contacts=5` per AOR is a fixed constant (`MAX_CONTACTS_PER_NUMBER` in
   `pjsip_realtime_repository.py`), not user-configurable

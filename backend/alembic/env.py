@@ -9,6 +9,7 @@ from alembic import context
 from backend.core.config import get_settings
 from backend.db.base import Base
 from backend.models import (
+    Cdr,
     ClaimCode,
     Device,
     Number,

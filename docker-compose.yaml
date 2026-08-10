@@ -42,6 +42,8 @@ services:
       - ./asterisk/config/sorcery.conf:/etc/asterisk/sorcery.conf:ro
       - ./asterisk/config/extconfig.conf:/etc/asterisk/extconfig.conf:ro
       - ./asterisk/config/res_odbc.conf:/etc/asterisk/res_odbc.conf:ro
+      - ./asterisk/config/cdr.conf:/etc/asterisk/cdr.conf:ro
+      - ./asterisk/config/cdr_odbc.conf:/etc/asterisk/cdr_odbc.conf:ro
       - asterisk-logs:/var/log/asterisk
       - asterisk-spool:/var/spool/asterisk
 
