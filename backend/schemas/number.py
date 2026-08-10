@@ -1,18 +1,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, field_validator
-
-
-class NumberCreate(BaseModel):
-    value: str
-
-    @field_validator("value")
-    @classmethod
-    def digits_only(cls, value: str) -> str:
-        if not value.isdigit():
-            raise ValueError("number value must contain digits only")
-        return value
+from pydantic import BaseModel, ConfigDict
 
 
 class NumberRead(BaseModel):

@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from backend.api.deps import get_number_service
 from backend.core.exceptions import ConflictError, NotFoundError
-from backend.schemas.number import NumberCreate, NumberRead
+from backend.schemas.number import NumberRead
 from backend.services.number_service import NumberService
 
 router = APIRouter(prefix="/users/{user_id}/number", tags=["numbers"])
@@ -14,11 +14,9 @@ NumberServiceDep = Annotated[NumberService, Depends(get_number_service)]
 
 
 @router.post("", response_model=NumberRead, status_code=status.HTTP_201_CREATED)
-async def assign_number(
-    user_id: uuid.UUID, payload: NumberCreate, service: NumberServiceDep
-) -> NumberRead:
+async def assign_number(user_id: uuid.UUID, service: NumberServiceDep) -> NumberRead:
     try:
-        return await service.assign_number(user_id, payload)
+        return await service.assign_number(user_id)
     except NotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)

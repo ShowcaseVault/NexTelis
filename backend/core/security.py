@@ -11,6 +11,8 @@ _CLAIM_CODE_ALPHABET = string.ascii_uppercase + string.digits
 _CLAIM_CODE_LENGTH = 8
 _DEVICE_TOKEN_BYTES = 32
 _SIP_PASSWORD_BYTES = 24
+_NUMBER_PREFIX = "99"
+_NUMBER_SUFFIX_DIGITS = 6
 
 
 @lru_cache
@@ -37,6 +39,14 @@ def hash_device_token(raw_token: str) -> str:
 def generate_sip_password() -> str:
     """Plaintext SIP auth secret for PJSIP realtime (userpass auth_type)."""
     return secrets.token_urlsafe(_SIP_PASSWORD_BYTES)
+
+
+def generate_number_value() -> str:
+    """NexTelis number, e.g. '99483027': fixed '99' prefix + 6 random digits."""
+    suffix = "".join(
+        secrets.choice(string.digits) for _ in range(_NUMBER_SUFFIX_DIGITS)
+    )
+    return f"{_NUMBER_PREFIX}{suffix}"
 
 
 def encrypt_secret(raw_value: str) -> str:
