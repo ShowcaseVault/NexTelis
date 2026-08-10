@@ -1,0 +1,8 @@
+[nextelis-pgsql]
+Description = NexTelis Postgres (ARA realtime source)
+Driver = PostgreSQL
+Servername = ${POSTGRES_HOST}
+Port = ${POSTGRES_PORT}
+Database = ${POSTGRES_DB}
+UserName = ${POSTGRES_USER}
+Password = ${POSTGRES_PASSWORD}

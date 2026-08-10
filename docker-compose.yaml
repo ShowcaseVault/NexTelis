@@ -28,11 +28,20 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - ./asterisk/config/pjsip.conf:/etc/asterisk/pjsip.conf:ro
       - ./asterisk/config/extensions.conf:/etc/asterisk/extensions.conf:ro
       - ./asterisk/config/logger.conf:/etc/asterisk/logger.conf:ro
-      - ./asterisk/dynamic:/etc/asterisk/dynamic:rw
+      - ./asterisk/config/modules.conf:/etc/asterisk/modules.conf:ro
+      - ./asterisk/config/sorcery.conf:/etc/asterisk/sorcery.conf:ro
+      - ./asterisk/config/extconfig.conf:/etc/asterisk/extconfig.conf:ro
+      - ./asterisk/config/res_odbc.conf:/etc/asterisk/res_odbc.conf:ro
       - asterisk-logs:/var/log/asterisk
       - asterisk-spool:/var/spool/asterisk
 
