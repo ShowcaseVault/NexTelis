@@ -1,7 +1,9 @@
 package com.showcasevault.nextelis
 
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.telecom.TelecomManager
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -27,8 +29,19 @@ class MainActivity : AppCompatActivity() {
             PermissionManager.requestAll(this)
         }
 
+        findViewById<Button>(R.id.btnEnableAccount).setOnClickListener {
+            openCallingAccountsSettings()
+        }
+
         findViewById<Button>(R.id.btnTestCall).setOnClickListener {
             openNativeDialer()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (PhoneAccountManager.isRegistered(this)) {
+            updateStatus()
         }
     }
 
@@ -49,13 +62,31 @@ class MainActivity : AppCompatActivity() {
 
     private fun registerAccount() {
         PhoneAccountManager.register(this)
-        statusText.text = "NexTelis registered ✓\nOpen your dialer and call — pick NexTelis when prompted"
+        updateStatus()
+    }
+
+    private fun updateStatus() {
+        statusText.text = if (PhoneAccountManager.isEnabled(this)) {
+            "NexTelis enabled ✓\nOpen your dialer and call — pick NexTelis when prompted"
+        } else {
+            "NexTelis registered, but not enabled.\nTap \"Enable NexTelis calling account\" below, " +
+                "then switch NexTelis on. Your regular SIM is not affected."
+        }
+    }
+
+    private fun openCallingAccountsSettings() {
+        val intent = Intent(TelecomManager.ACTION_CHANGE_PHONE_ACCOUNTS)
+        try {
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Couldn't open calling accounts settings", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun openNativeDialer() {
         // Just open the native Samsung dialer
         // Android will show SIM / NexTelis chooser
-        val intent = android.content.Intent(android.content.Intent.ACTION_DIAL)
+        val intent = Intent(Intent.ACTION_DIAL)
         startActivity(intent)
     }
 }

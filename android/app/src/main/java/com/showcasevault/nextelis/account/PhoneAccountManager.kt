@@ -39,4 +39,12 @@ object PhoneAccountManager {
         val telecom = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
         return telecom.getPhoneAccount(getHandle(context)) != null
     }
+
+    // registerPhoneAccount() alone leaves the account disabled — the user
+    // must flip it on in Settings > Calling accounts before it appears in
+    // the dialer's "call using" chooser. This never touches the real SIM account.
+    fun isEnabled(context: Context): Boolean {
+        val telecom = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
+        return telecom.getPhoneAccount(getHandle(context))?.isEnabled ?: false
+    }
 }

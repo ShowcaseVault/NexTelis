@@ -24,6 +24,14 @@
         android:layout_marginBottom="32dp"/>
 
     <Button
+        android:id="@+id/btnEnableAccount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enable NexTelis calling account"
+        android:padding="16dp"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
         android:id="@+id/btnTestCall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
