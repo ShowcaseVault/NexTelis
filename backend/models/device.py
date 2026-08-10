@@ -20,7 +20,9 @@ class Device(CommonModel):
 
     # SHA-256 hex digest of the opaque device token. The raw token is
     # returned to the device exactly once, at claim time, and never stored.
-    hashed_token: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
+    hashed_token: Mapped[str] = mapped_column(
+        String(64), unique=True, index=True, nullable=False
+    )
 
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),

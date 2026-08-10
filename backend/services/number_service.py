@@ -1,0 +1,40 @@
+import uuid
+
+from backend.core.exceptions import ConflictError, NotFoundError
+from backend.models.number import Number
+from backend.repositories.number_repository import NumberRepository
+from backend.repositories.user_repository import UserRepository
+from backend.schemas.number import NumberCreate
+
+
+class NumberService:
+    def __init__(
+        self,
+        number_repository: NumberRepository,
+        user_repository: UserRepository,
+    ) -> None:
+        self.number_repository = number_repository
+        self.user_repository = user_repository
+
+    async def assign_number(self, user_id: uuid.UUID, payload: NumberCreate) -> Number:
+        user = await self.user_repository.get(user_id)
+        if user is None:
+            raise NotFoundError(f"user {user_id} not found")
+
+        if await self.number_repository.get_by_user_id(user_id) is not None:
+            raise ConflictError(f"user {user_id} already has a number assigned")
+
+        if await self.number_repository.get_by_value(payload.value) is not None:
+            raise ConflictError(f"number {payload.value!r} is already taken")
+
+        number = self.number_repository.add(
+            Number(value=payload.value, user_id=user_id)
+        )
+        await self.number_repository.commit()
+        return number
+
+    async def get_number_for_user(self, user_id: uuid.UUID) -> Number:
+        number = await self.number_repository.get_by_user_id(user_id)
+        if number is None:
+            raise NotFoundError(f"user {user_id} has no number assigned")
+        return number

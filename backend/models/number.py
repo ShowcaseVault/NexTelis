@@ -14,7 +14,9 @@ if TYPE_CHECKING:
 class Number(CommonModel):
     __tablename__ = "numbers"
 
-    value: Mapped[str] = mapped_column(String(32), unique=True, index=True, nullable=False)
+    value: Mapped[str] = mapped_column(
+        String(32), unique=True, index=True, nullable=False
+    )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     user_id: Mapped[uuid.UUID] = mapped_column(

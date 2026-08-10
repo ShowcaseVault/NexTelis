@@ -13,7 +13,9 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    backend_port: int = 8000
+    ENVIRONMENT: str
+    SERVER_HOST: str = "0.0.0.0"
+    SERVER_PORT: int = 8000
 
     asterisk_host: str = "localhost"
     asterisk_ami_port: int = 5038

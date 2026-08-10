@@ -8,7 +8,12 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 from backend.core.config import get_settings
 from backend.db.base import Base
-from backend.models import ClaimCode, Device, Number, User  # noqa: F401  ensures mappers register
+from backend.models import (
+    ClaimCode,
+    Device,
+    Number,
+    User,
+)  # noqa: F401  ensures mappers register
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

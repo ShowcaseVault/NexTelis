@@ -1,5 +1,9 @@
 .PHONY: up down restart build logs status phones check shell clean
 
+# ── Server ────────────────────────────────────────────────
+run:
+	uv run server.py
+
 # ── Compose ────────────────────────────────────────────────
 up:
 	docker compose up -d

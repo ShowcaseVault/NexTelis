@@ -9,7 +9,9 @@ _DEVICE_TOKEN_BYTES = 32
 
 def generate_claim_code() -> str:
     """Short, human-typeable code, e.g. 'K3F9QZ2P'."""
-    return "".join(secrets.choice(_CLAIM_CODE_ALPHABET) for _ in range(_CLAIM_CODE_LENGTH))
+    return "".join(
+        secrets.choice(_CLAIM_CODE_ALPHABET) for _ in range(_CLAIM_CODE_LENGTH)
+    )
 
 
 def generate_device_token() -> str:

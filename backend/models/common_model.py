@@ -7,6 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.db.base import Base
 
+
 class CommonModel(Base):
     """Common columns for every entity: UUID pk, timestamps, soft delete.
 
