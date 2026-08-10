@@ -6,7 +6,18 @@ dependencies = [
     "alembic>=1.19.1",
     "asyncpg>=0.31.0",
     "black>=26.5.1",
+    "cryptography>=50.0.0",
     "fastapi[standard]>=0.141.1",
     "pydantic-settings>=2.15.0",
-    "sqlalchemy[asyncio]>=2.0.51"
+    "sqlalchemy[asyncio]>=2.0.51",
 ]
+
+[tool.black]
+target-version = ["py314"]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]  # pyflakes + pycodestyle + isort (import ordering)

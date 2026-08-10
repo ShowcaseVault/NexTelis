@@ -1,23 +1,13 @@
 import asyncio
 from logging.config import fileConfig
 
+from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from alembic import context
 from backend.core.config import get_settings
 from backend.db.base import Base
-from backend.models import (
-    Cdr,
-    ClaimCode,
-    Device,
-    Number,
-    PsAor,
-    PsAuth,
-    PsEndpoint,
-    User,
-)  # noqa: F401  ensures mappers register
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -22,6 +22,11 @@ class Settings(BaseSettings):
     asterisk_ami_user: str = "admin"
     asterisk_ami_pass: str = "changeme"
 
+    # Fernet key encrypting secrets-at-rest (e.g. numbers.sip_password).
+    # Generate with: python -c "from cryptography.fernet import Fernet; \
+    # print(Fernet.generate_key().decode())"
+    secrets_encryption_key: str
+
     postgres_db: str = "nextelis"
     postgres_user: str = "nextelis"
     postgres_password: str = "changeme"

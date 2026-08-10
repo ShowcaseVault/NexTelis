@@ -51,3 +51,11 @@ class NumberService:
         if number is None:
             raise NotFoundError(f"user {user_id} has no number assigned")
         return number
+
+    async def resolve_callable_number(self, value: str) -> Number:
+        number = await self.number_repository.get_by_value(value)
+        if number is None:
+            raise NotFoundError(f"number {value!r} not found")
+        if not number.is_active:
+            raise ConflictError(f"number {value!r} is not active")
+        return number

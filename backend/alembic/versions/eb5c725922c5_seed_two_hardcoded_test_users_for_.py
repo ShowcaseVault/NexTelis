@@ -8,8 +8,10 @@ Create Date: 2026-08-10 22:57:04.672641
 
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
+
+from backend.core.security import encrypt_secret, hash_device_token
 
 # revision identifiers, used by Alembic.
 revision: str = "eb5c725922c5"
@@ -17,10 +19,9 @@ down_revision: Union[str, Sequence[str], None] = "de97b38e1af6"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
-# Fixed test fixtures — same UUIDs/tokens every time this migration runs,
-# so integration tests and manual curl/SIP-client testing can rely on them.
-# Device raw tokens are only ever known here; devices table stores only the
-# sha256 hash (see backend/core/security.py hash_device_token).
+
+MAX_CONTACTS_PER_NUMBER = 5
+
 TEST_USERS = [
     {
         "user_id": "00000000-0000-0000-0000-000000000001",
@@ -31,8 +32,7 @@ TEST_USERS = [
         "sip_password": "test-sip-password-7001",
         "device_id": "00000000-0000-0000-0000-000000000021",
         "device_name": "Test Device One",
-        # sha256("test-device-token-phone1-fixed")
-        "device_hashed_token": "866ffdcc84fffe9de63133ed3226feabad64e85756b5cd44cb470465c079c5c",
+        "device_raw_token": "test-device-token-phone1-fixed",
     },
     {
         "user_id": "00000000-0000-0000-0000-000000000002",
@@ -43,12 +43,9 @@ TEST_USERS = [
         "sip_password": "test-sip-password-7002",
         "device_id": "00000000-0000-0000-0000-000000000022",
         "device_name": "Test Device Two",
-        # sha256("test-device-token-phone2-fixed")
-        "device_hashed_token": "fdf8f887f5abf8c3e06f5e39c5f48f31afed9460632537f5797fd8d6bf14fed",
+        "device_raw_token": "test-device-token-phone2-fixed",
     },
 ]
-
-MAX_CONTACTS_PER_NUMBER = 5
 
 
 def upgrade() -> None:
@@ -67,22 +64,28 @@ def upgrade() -> None:
         op.execute(
             sa.text("""
                 INSERT INTO numbers (id, value, is_active, user_id, sip_password)
-                VALUES (CAST(:number_id AS uuid), :number_value, true, CAST(:user_id AS uuid), :sip_password)
+                VALUES (
+                    CAST(:number_id AS uuid), :number_value, true,
+                    CAST(:user_id AS uuid), :sip_password
+                )
                 """).bindparams(
                 number_id=fixture["number_id"],
                 number_value=fixture["number_value"],
                 user_id=fixture["user_id"],
-                sip_password=fixture["sip_password"],
+                sip_password=encrypt_secret(fixture["sip_password"]),
             )
         )
         op.execute(
             sa.text("""
                 INSERT INTO devices (id, name, is_active, hashed_token, user_id)
-                VALUES (CAST(:device_id AS uuid), :device_name, true, :device_hashed_token, CAST(:user_id AS uuid))
+                VALUES (
+                    CAST(:device_id AS uuid), :device_name, true,
+                    :device_hashed_token, CAST(:user_id AS uuid)
+                )
                 """).bindparams(
                 device_id=fixture["device_id"],
                 device_name=fixture["device_name"],
-                device_hashed_token=fixture["device_hashed_token"],
+                device_hashed_token=hash_device_token(fixture["device_raw_token"]),
                 user_id=fixture["user_id"],
             )
         )

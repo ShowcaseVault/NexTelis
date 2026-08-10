@@ -1,9 +1,11 @@
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.db.session import get_db
+from backend.models.device import Device
 from backend.repositories.claim_code_repository import ClaimCodeRepository
 from backend.repositories.device_repository import DeviceRepository
 from backend.repositories.number_repository import NumberRepository
@@ -14,6 +16,8 @@ from backend.services.number_service import NumberService
 from backend.services.user_service import UserService
 
 SessionDep = Annotated[AsyncSession, Depends(get_db)]
+
+_bearer_scheme = HTTPBearer()
 
 
 def get_user_repository(session: SessionDep) -> UserRepository:
@@ -62,3 +66,20 @@ def get_device_service(
     ],
 ) -> DeviceService:
     return DeviceService(device_repository, claim_code_repository)
+
+
+async def get_current_device(
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(_bearer_scheme)],
+    device_service: Annotated[DeviceService, Depends(get_device_service)],
+) -> Device:
+    device = await device_service.authenticate(credentials.credentials)
+    if device is None or not device.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="invalid or inactive device token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return device
+
+
+CurrentDeviceDep = Annotated[Device, Depends(get_current_device)]

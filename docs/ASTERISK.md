@@ -132,7 +132,7 @@ Three Postgres tables, with **exactly** the column names/types PJSIP's realtime 
 
 - **`ps_endpoints`** — `id` (= the extension number, e.g. `"9001"`), `context`, `allow`/`disallow`
   codecs, `auth`, `aors`, transport, etc.
-- **`ps_auths`** — `id`, `auth_type=userpass`, `username`, `password` (plaintext — see §7)
+- **`ps_auths`** — `id`, `auth_type=userpass`, `username`, `password` (plaintext, Asterisk-facing — see §7)
 - **`ps_aors`** — `id`, `max_contacts` (currently `5`), `remove_existing=yes`, `support_path=yes`
 
 `Number.value` (e.g. `"9001"`) is reused directly as the `id`/`username`/`callerid` in all three
@@ -218,12 +218,18 @@ Two different secrets exist in this system and they're deliberately handled diff
   token is shown to the app exactly once, at claim time, and is used by our own backend to verify
   `Authorization: Bearer` headers. Nothing reads it back in plaintext, ever, so hashing is correct
   and cheap.
-- **SIP password** (`numbers.sip_password` / `ps_auths.password`) — stored **in plaintext**. This
-  is not an oversight: PJSIP's `userpass` digest authentication requires Asterisk to compute an
-  MD5 challenge/response using the actual shared secret on every REGISTER/INVITE. A one-way hash
-  can't be used for that math — this is the same reason every traditional SIP/PBX system stores
-  SIP secrets in cleartext. It's protected by DB access control, not by hashing, and it is never
-  exposed through any backend API.
+- **SIP password** — PJSIP's `userpass` digest authentication requires Asterisk to compute an MD5
+  challenge/response using the actual shared secret on every REGISTER/INVITE, so a one-way hash
+  can never work here — this secret has to be reversible. It is handled differently in the two
+  tables that hold it:
+  - `numbers.sip_password` (NexTelis's own table) is encrypted at rest with Fernet
+    (`backend/db/types.py` `EncryptedString`, backed by `encrypt_secret`/`decrypt_secret` in
+    `backend/core/security.py`, keyed by `SECRETS_ENCRYPTION_KEY` in `.env`). The ORM attribute
+    is transparently plaintext to application code; only the DB column holds ciphertext.
+  - `ps_auths.password` (Asterisk's own realtime table, read directly by `res_config_odbc`) is
+    necessarily **plaintext** — Asterisk has no concept of decrypting a column before using it in
+    a digest calculation. It's protected by DB access control alone, and it is never exposed
+    through any backend API.
 
 AMI (`ASTERISK_AMI_*` in `.env`) is configured but **completely unused** — no code anywhere calls
 it. It would become relevant if the backend ever needs to *originate calls itself*, subscribe to

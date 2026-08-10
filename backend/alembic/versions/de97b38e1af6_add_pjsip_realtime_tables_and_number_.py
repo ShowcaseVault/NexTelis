@@ -8,8 +8,8 @@ Create Date: 2026-08-10 22:56:18.878831
 
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "de97b38e1af6"
@@ -57,7 +57,7 @@ def upgrade() -> None:
     op.add_column(
         "numbers",
         sa.Column(
-            "sip_password", sa.String(length=64), nullable=False, server_default=""
+            "sip_password", sa.String(length=256), nullable=False, server_default=""
         ),
     )
     op.alter_column("numbers", "sip_password", server_default=None)
