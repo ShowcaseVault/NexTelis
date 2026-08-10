@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/surface_background"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="28dp">
+
+        <TextView
+            android:id="@+id/textGreeting"
+            style="@style/NT.Text.Label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            tools:text="HEY VISHAL"
+            xmlns:tools="http://schemas.android.com/tools" />
+
+        <!-- Number card -->
+        <LinearLayout
+            style="@style/NT.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/NT.Text.Label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:text="@string/home_your_number" />
+
+            <TextView
+                android:id="@+id/textNumberValue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_number_display"
+                android:fontFamily="monospace"
+                android:gravity="center"
+                android:letterSpacing="0.1"
+                android:padding="20dp"
+                android:textColor="@color/brand_primary"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                tools:text="99143207"
+                xmlns:tools="http://schemas.android.com/tools" />
+        </LinearLayout>
+
+        <!-- Calling account status card -->
+        <LinearLayout
+            style="@style/NT.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    style="@style/NT.Text.Title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Calling account" />
+
+                <TextView
+                    android:id="@+id/textAccountStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_pill_warn"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="6dp"
+                    android:textColor="@color/status_warn"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    tools:text="Not enabled"
+                    xmlns:tools="http://schemas.android.com/tools" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/textAccountHint"
+                style="@style/NT.Text.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:text="@string/home_enable_hint" />
+
+            <Button
+                android:id="@+id/btnEnableAccount"
+                style="@style/NT.Button.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/btn_enable_account" />
+        </LinearLayout>
+
+        <!-- How-to card -->
+        <LinearLayout
+            style="@style/NT.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="28dp"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/NT.Text.Title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="@string/home_how_title" />
+
+            <TextView
+                style="@style/NT.Text.Body"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/home_how_body" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnTestCall"
+            style="@style/NT.Button.Primary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_call_via_nextelis" />
+
+    </LinearLayout>
+</ScrollView>

@@ -2,6 +2,7 @@ package com.showcasevault.nextelis.permissions
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.ActivityCompat
@@ -29,10 +30,10 @@ object PermissionManager {
         return permissions.toTypedArray()
     }
 
-    fun allGranted(activity: Activity): Boolean {
+    fun allGranted(context: Context): Boolean {
         return requiredPermissions().all {
             ContextCompat.checkSelfPermission(
-                activity, it
+                context, it
             ) == PackageManager.PERMISSION_GRANTED
         }
     }

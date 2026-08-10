@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/surface_background"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="28dp">
+
+        <TextView
+            style="@style/NT.Text.Display"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="@string/permissions_title" />
+
+        <TextView
+            style="@style/NT.Text.Body"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="28dp"
+            android:text="@string/permissions_body" />
+
+        <LinearLayout
+            style="@style/NT.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="14dp"
+            android:orientation="vertical">
+            <TextView style="@style/NT.Text.Title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/permission_call_title" />
+            <TextView style="@style/NT.Text.Body" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="@string/permission_call_body" />
+        </LinearLayout>
+
+        <LinearLayout
+            style="@style/NT.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="14dp"
+            android:orientation="vertical">
+            <TextView style="@style/NT.Text.Title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/permission_audio_title" />
+            <TextView style="@style/NT.Text.Body" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="@string/permission_audio_body" />
+        </LinearLayout>
+
+        <LinearLayout
+            style="@style/NT.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="28dp"
+            android:orientation="vertical">
+            <TextView style="@style/NT.Text.Title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/permission_state_title" />
+            <TextView style="@style/NT.Text.Body" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="@string/permission_state_body" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/textDenied"
+            style="@style/NT.Text.Body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:gravity="center"
+            android:textColor="@color/status_bad"
+            android:visibility="gone"
+            android:text="@string/status_permissions_denied" />
+
+        <Button
+            android:id="@+id/btnGrant"
+            style="@style/NT.Button.Primary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_grant_permissions" />
+
+        <Button
+            android:id="@+id/btnOpenSettings"
+            style="@style/NT.Button.Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/btn_open_app_settings"
+            android:visibility="gone" />
+
+    </LinearLayout>
+</ScrollView>

@@ -1,8 +1,43 @@
 <resources>
     <string name="app_name">NexTelis</string>
 
-    <string name="status_permissions_denied">Permissions denied</string>
-    <string name="status_account_enabled">NexTelis enabled ✓\nOpen your dialer and call — pick NexTelis when prompted</string>
-    <string name="status_account_registered_not_enabled">NexTelis registered, but not enabled.\nTap \"Enable NexTelis calling account\" below, then switch NexTelis on. Your regular SIM is not affected.</string>
+    <!-- Shared / errors -->
+    <string name="error_network_generic">Couldn\'t reach NexTelis: %1$s</string>
     <string name="error_open_calling_accounts_failed">Couldn\'t open calling accounts settings</string>
+
+    <!-- Pair device -->
+    <string name="claim_code_expiry">%1$s</string>
+    <string name="claim_code_minutes">Expires in %1$d min</string>
+
+    <!-- Permissions -->
+    <string name="permissions_title">Allow NexTelis to make calls</string>
+    <string name="permissions_body">NexTelis needs these permissions to appear as a calling option in your dialer and carry call audio. Your regular SIM is never affected.</string>
+    <string name="permission_call_title">Phone calls</string>
+    <string name="permission_call_body">Lets NexTelis register as a calling account, alongside your SIM.</string>
+    <string name="permission_audio_title">Microphone</string>
+    <string name="permission_audio_body">Needed to carry your voice during a NexTelis call.</string>
+    <string name="permission_state_title">Phone state</string>
+    <string name="permission_state_body">Lets NexTelis check whether its calling account is enabled.</string>
+    <string name="btn_grant_permissions">Grant permissions</string>
+    <string name="status_permissions_denied">Some permissions were denied — NexTelis can\'t continue without them.</string>
+    <string name="btn_open_app_settings">Open app settings</string>
+
+    <!-- Get number -->
+    <string name="get_number_title">Claim your number</string>
+    <string name="get_number_body">This is your private NexTelis number — share it with other NexTelis users so they can reach you.</string>
+    <string name="btn_get_number">Get my NexTelis number</string>
+    <string name="number_assigned_caption">Your NexTelis number</string>
+    <string name="btn_continue">Continue</string>
+
+    <!-- Home -->
+    <string name="home_greeting">Hey %1$s</string>
+    <string name="home_your_number">Your NexTelis number</string>
+    <string name="status_account_enabled">Ready to receive calls ✓</string>
+    <string name="status_account_registered_not_enabled">Not enabled yet</string>
+    <string name="status_account_not_registered">Not registered</string>
+    <string name="home_enable_hint">Open Settings and turn NexTelis on as a calling account. Your SIM stays exactly as it is.</string>
+    <string name="btn_enable_account">Enable calling account</string>
+    <string name="btn_call_via_nextelis">Call using NexTelis</string>
+    <string name="home_how_title">How to call with NexTelis</string>
+    <string name="home_how_body">Dial any number as usual. When Android asks which account to call with, choose NexTelis.</string>
 </resources>

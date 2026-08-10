@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/surface_background"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="28dp">
+
+    <TextView
+        style="@style/NT.Text.Display"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:gravity="center"
+        android:text="@string/get_number_title" />
+
+    <TextView
+        style="@style/NT.Text.Body"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="36dp"
+        android:gravity="center"
+        android:text="@string/get_number_body" />
+
+    <TextView
+        android:id="@+id/textNumberCaption"
+        style="@style/NT.Text.Label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:text="@string/number_assigned_caption"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/textNumberValue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="28dp"
+        android:background="@drawable/bg_number_display"
+        android:fontFamily="monospace"
+        android:gravity="center"
+        android:letterSpacing="0.1"
+        android:padding="24dp"
+        android:textColor="@color/brand_primary"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        tools:text="99143207" />
+
+    <Button
+        android:id="@+id/btnGetNumber"
+        style="@style/NT.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_get_number" />
+
+    <Button
+        android:id="@+id/btnContinue"
+        style="@style/NT.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_continue"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/textError"
+        style="@style/NT.Text.Body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:textColor="@color/status_bad"
+        android:visibility="gone" />
+
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:indeterminateTint="@color/brand_primary"
+        android:visibility="gone" />
+
+</LinearLayout>

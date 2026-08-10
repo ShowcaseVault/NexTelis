@@ -1,0 +1,8 @@
+# Copy this file to local.properties (which is gitignored) and fill in
+# your own values. local.properties is never committed — see .gitignore.
+
+sdk.dir=/path/to/Android/Sdk
+
+# NexTelis backend base URL. Point this at your own dev server's LAN IP —
+# see docs/ARCHITECTURE.md §8 (Local Development Architecture).
+nextelis.api.baseUrl=http://YOUR_SERVER_IP:8000/
