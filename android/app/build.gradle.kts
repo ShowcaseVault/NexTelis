@@ -56,6 +56,8 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.moshi)
     implementation(libs.moshi.kotlin)
+    implementation(libs.moshi.adapters)
+    implementation(libs.kotlin.reflect)
     implementation(libs.okhttp.logging)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)

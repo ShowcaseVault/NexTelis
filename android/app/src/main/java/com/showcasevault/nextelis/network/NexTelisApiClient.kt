@@ -24,6 +24,7 @@ object NexTelisApiClient {
 
     private fun buildRetrofit(): Retrofit {
         val moshi = Moshi.Builder()
+            .add(UuidAdapter())
             .add(KotlinJsonAdapterFactory())
             .build()
 
