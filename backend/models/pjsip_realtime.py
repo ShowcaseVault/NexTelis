@@ -46,3 +46,4 @@ class PsAor(Base):
     max_contacts: Mapped[int] = mapped_column(Integer, nullable=True)
     remove_existing: Mapped[str] = mapped_column(String(3), nullable=True)
     support_path: Mapped[str] = mapped_column(String(3), nullable=True)
+    qualify_frequency: Mapped[int] = mapped_column(Integer, nullable=True)

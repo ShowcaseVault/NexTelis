@@ -21,6 +21,10 @@ object SipManager {
 
     private const val TAG = "SipManager"
 
+    /** Short enough that a dead contact ages out quickly, long enough not to
+     * hammer the network. Asterisk will renew via the REGISTER refresh. */
+    private const val REGISTRATION_EXPIRY_SECONDS = 300
+
     private var core: Core? = null
     private var listener: SipCallListener? = null
     private var appContext: Context? = null
@@ -35,7 +39,7 @@ object SipManager {
 
         val existingCore = core
         if (existingCore != null) {
-            existingCore.stop()
+            unregisterAndStop(existingCore)
         }
 
         val factory = Factory.instance()
@@ -61,6 +65,12 @@ object SipManager {
         accountParams.identityAddress = identity
         accountParams.serverAddress = serverAddress
         accountParams.isRegisterEnabled = true
+        // Without an explicit expiry the registration lapses and is never
+        // renewed: outgoing INVITEs still work (they don't need a valid
+        // registration) but Asterisk no longer knows where to reach us, so
+        // incoming calls silently stop. This is the "could call out but
+        // never receive" bug.
+        accountParams.expires = REGISTRATION_EXPIRY_SECONDS
 
         val account = newCore.createAccount(accountParams)
         newCore.addAccount(account)
@@ -71,8 +81,32 @@ object SipManager {
     }
 
     fun stop() {
-        core?.stop()
+        core?.let { unregisterAndStop(it) }
         core = null
+    }
+
+    /**
+     * Drops the SIP registration before tearing the Core down.
+     *
+     * Each Core binds a fresh random UDP port, so Asterisk treats a restart
+     * as a *new* contact rather than a refresh of the old one. Without an
+     * explicit unregister, dead contacts accumulate against the AOR's
+     * max_contacts limit and inbound calls fork to phones that no longer
+     * exist. Clearing registration on the way out keeps the AOR clean.
+     */
+    private fun unregisterAndStop(target: Core) {
+        try {
+            target.defaultAccount?.params?.let { params ->
+                val clone = params.clone()
+                clone.isRegisterEnabled = false
+                target.defaultAccount?.params = clone
+            }
+            // Give the un-REGISTER a chance to go out before the Core dies.
+            target.iterate()
+        } catch (e: Exception) {
+            Log.w(TAG, "Clean unregister failed, stopping anyway: ${e.message}")
+        }
+        target.stop()
     }
 
     fun placeCall(destinationNumber: String) {

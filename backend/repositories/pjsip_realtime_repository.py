@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.models.pjsip_realtime import PsAor, PsAuth, PsEndpoint
 
 MAX_CONTACTS_PER_NUMBER = 5
+QUALIFY_FREQUENCY_SECONDS = 30
 
 
 class PjsipRealtimeRepository:
@@ -48,6 +49,7 @@ class PjsipRealtimeRepository:
                 max_contacts=MAX_CONTACTS_PER_NUMBER,
                 remove_existing="yes",
                 support_path="yes",
+                qualify_frequency=QUALIFY_FREQUENCY_SECONDS,
             )
         )
 
