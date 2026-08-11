@@ -10,8 +10,8 @@ import com.showcasevault.nextelis.session.SessionStore
 
 /**
  * Decides which screen the user should see next, based on onboarding
- * progress: pairing -> permissions -> number -> home. Centralized here so
- * no single activity has to know the whole sequence.
+ * progress: server -> pairing -> permissions -> number -> home. Centralized
+ * here so no single activity has to know the whole sequence.
  */
 object AppFlow {
 
@@ -22,6 +22,7 @@ object AppFlow {
 
     fun nextStepIntent(context: Context): Intent {
         return when {
+            !SessionStore.hasServerConfig(context) -> Intent(context, ServerSetupActivity::class.java)
             !SessionStore.isPaired(context) -> Intent(context, PairDeviceActivity::class.java)
             !PermissionManager.allGranted(context) -> Intent(context, PermissionsActivity::class.java)
             !SessionStore.hasNumber(context) -> Intent(context, GetNumberActivity::class.java)

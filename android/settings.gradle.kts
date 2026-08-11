@@ -20,10 +20,16 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         // Linphone SDK — not published to Maven Central. See docs/FINDINGS.md
-        // ("SIP/RTP client choice") for why this library was chosen.
+        // ("SIP/RTP client choice") for why this library was chosen. We use
+        // the "no-video" build (group org.linphone.no-video) since NexTelis
+        // only makes audio calls — meaningfully smaller than org.linphone's
+        // full artifact, which bundles VP8/H264 video codecs we never use.
         maven {
             url = uri("https://download.linphone.org/maven_repository")
-            content { includeGroup("org.linphone") }
+            content {
+                includeGroup("org.linphone")
+                includeGroup("org.linphone.no-video")
+            }
         }
     }
 }

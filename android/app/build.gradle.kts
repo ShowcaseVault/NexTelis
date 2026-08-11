@@ -1,15 +1,7 @@
-import java.util.Properties
-
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.ksp)
 }
-
-val localProperties = Properties().apply {
-    val file = rootProject.file("local.properties")
-    if (file.exists()) file.inputStream().use { load(it) }
-}
-val nextelisApiBaseUrl: String =
-    localProperties.getProperty("nextelis.api.baseUrl") ?: "http://192.168.1.13:8000/"
 
 android {
     namespace = "com.showcasevault.nextelis"
@@ -23,21 +15,40 @@ android {
         applicationId = "com.showcasevault.nextelis"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 6
+        versionName = "0.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "API_BASE_URL", "\"$nextelisApiBaseUrl\"")
+
+        // App only ships English strings — this drops translated strings
+        // pulled in transitively from AndroidX/Material for other locales.
+        resourceConfigurations += listOf("en")
     }
 
-    buildFeatures {
-        buildConfig = true
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            // arm64-v8a covers virtually all devices from the last ~8 years;
+            // the others are kept for older/emulator hardware.
+            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+            isUniversalApk = true
+        }
     }
 
     buildTypes {
         release {
-            optimization {
-                enable = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            ndk {
+                // Linphone ships native .so libraries with debug symbols;
+                // release builds don't need them and they're a large chunk
+                // of APK size.
+                debugSymbolLevel = "NONE"
             }
         }
     }
@@ -51,13 +62,13 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
+    implementation(libs.androidx.drawerlayout)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.moshi)
-    implementation(libs.moshi.kotlin)
     implementation(libs.moshi.adapters)
-    implementation(libs.kotlin.reflect)
+    ksp(libs.moshi.kotlin.codegen)
     implementation(libs.okhttp.logging)
     implementation(libs.linphone.sdk.android)
     testImplementation(libs.junit)

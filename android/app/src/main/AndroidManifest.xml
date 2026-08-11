@@ -40,6 +40,10 @@
         </activity>
 
         <activity
+            android:name=".onboarding.ServerSetupActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".onboarding.PairDeviceActivity"
             android:exported="false" />
 
@@ -53,6 +57,10 @@
 
         <activity
             android:name=".home.HomeActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".account.AccountActivity"
             android:exported="false" />
 
         <service

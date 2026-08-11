@@ -5,6 +5,15 @@
     <string name="error_network_generic">Couldn\'t reach NexTelis: %1$s</string>
     <string name="error_open_calling_accounts_failed">Couldn\'t open calling accounts settings</string>
 
+    <!-- Server setup -->
+    <string name="server_setup_title">Connect to your NexTelis server</string>
+    <string name="server_setup_body">Enter the address of the NexTelis server this device should use.</string>
+    <string name="server_setup_host_hint">Server IP or hostname</string>
+    <string name="server_setup_port_hint">Port</string>
+    <string name="server_setup_error_host_required">Enter a server IP or hostname.</string>
+    <string name="server_setup_error_port_invalid">Enter a valid port (1–65535).</string>
+    <string name="btn_connect">Connect</string>
+
     <!-- Pair device -->
     <string name="claim_code_expiry">%1$s</string>
     <string name="claim_code_minutes">Expires in %1$d min</string>
@@ -28,6 +37,16 @@
     <string name="btn_get_number">Get my NexTelis number</string>
     <string name="number_assigned_caption">Your NexTelis number</string>
     <string name="btn_continue">Continue</string>
+
+    <!-- Navigation drawer -->
+    <string name="nav_home">Home</string>
+    <string name="nav_account">Account</string>
+
+    <!-- Account screen -->
+    <string name="account_title">Account</string>
+    <string name="home_greeting_label">Name</string>
+    <string name="account_server_label">Server</string>
+    <string name="btn_change_server">Change server</string>
 
     <!-- Home -->
     <string name="home_greeting">Hey %1$s</string>

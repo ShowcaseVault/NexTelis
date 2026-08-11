@@ -14,9 +14,31 @@ object SessionStore {
     private const val KEY_DISPLAY_NAME = "display_name"
     private const val KEY_NUMBER_VALUE = "number_value"
     private const val KEY_SIP_PASSWORD = "sip_password"
+    private const val KEY_SERVER_HOST = "server_host"
+    private const val KEY_SERVER_PORT = "server_port"
 
     private fun prefs(context: Context) =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    /** Saves the NexTelis server this device should talk to. Clears any cached API client. */
+    fun saveServerConfig(context: Context, host: String, port: Int) {
+        prefs(context).edit()
+            .putString(KEY_SERVER_HOST, host)
+            .putInt(KEY_SERVER_PORT, port)
+            .apply()
+    }
+
+    fun getServerHost(context: Context): String? = prefs(context).getString(KEY_SERVER_HOST, null)
+
+    fun getServerPort(context: Context): Int = prefs(context).getInt(KEY_SERVER_PORT, 8000)
+
+    fun hasServerConfig(context: Context): Boolean = getServerHost(context) != null
+
+    /** e.g. "http://192.168.1.50:8000/" — the base URL for the API and the SIP host. */
+    fun getServerBaseUrl(context: Context): String? {
+        val host = getServerHost(context) ?: return null
+        return "http://$host:${getServerPort(context)}/"
+    }
 
     fun savePairing(context: Context, userId: String, deviceToken: String, displayName: String) {
         prefs(context).edit()

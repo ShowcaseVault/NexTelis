@@ -3,14 +3,20 @@ package com.showcasevault.nextelis.home
 import android.content.Intent
 import android.os.Bundle
 import android.telecom.TelecomManager
+import android.view.Gravity
 import android.view.View
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.DrawableCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import com.google.android.material.navigation.NavigationView
 import com.showcasevault.nextelis.R
+import com.showcasevault.nextelis.account.AccountActivity
 import com.showcasevault.nextelis.account.AccountStatus
 import com.showcasevault.nextelis.account.PhoneAccountManager
 import com.showcasevault.nextelis.session.SessionStore
@@ -35,6 +41,7 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var textAccountHint: TextView
     private lateinit var btnMasterToggle: FrameLayout
     private lateinit var btnTestCall: Button
+    private lateinit var drawerLayout: DrawerLayout
 
     private var serviceRunning = false
 
@@ -48,6 +55,37 @@ class HomeActivity : AppCompatActivity() {
         textAccountHint = findViewById(R.id.textAccountHint)
         btnMasterToggle = findViewById(R.id.btnMasterToggle)
         btnTestCall = findViewById(R.id.btnTestCall)
+        drawerLayout = findViewById(R.id.drawerLayout)
+
+        // app:navigationIcon/menu/headerLayout are set here instead of in XML —
+        // AGP 9.3.1's AAPT2 fails to resolve those specific app: attributes on
+        // Toolbar/NavigationView on this toolchain (reproduces even on a bare
+        // layout with no other project changes); setting them in code sidesteps
+        // resource linking entirely.
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        val menuIcon = ContextCompat.getDrawable(this, R.drawable.ic_menu)?.mutate()?.also {
+            DrawableCompat.setTint(it, getColor(R.color.text_primary))
+        }
+        toolbar.navigationIcon = menuIcon
+        toolbar.setNavigationOnClickListener { drawerLayout.openDrawer(Gravity.START) }
+
+        val navigationView = findViewById<NavigationView>(R.id.navigationView)
+        navigationView.inflateMenu(R.menu.drawer_menu)
+        navigationView.inflateHeaderView(R.layout.view_drawer_header)
+        navigationView.itemIconTintList = getColorStateList(R.color.text_secondary)
+        navigationView.itemTextColor = getColorStateList(R.color.text_primary)
+        navigationView.itemBackground = ContextCompat.getDrawable(this, R.drawable.bg_nav_item)
+        navigationView.setNavigationItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navHome -> drawerLayout.closeDrawer(Gravity.START)
+                R.id.navAccount -> {
+                    drawerLayout.closeDrawer(Gravity.START)
+                    startActivity(Intent(this, AccountActivity::class.java))
+                }
+            }
+            true
+        }
+        navigationView.setCheckedItem(R.id.navHome)
 
         btnMasterToggle.setOnClickListener { onMasterToggleClicked() }
         btnTestCall.setOnClickListener { openNativeDialer() }
@@ -60,6 +98,14 @@ class HomeActivity : AppCompatActivity() {
         renderGreeting()
         renderNumber()
         renderAccountStatus()
+    }
+
+    override fun onBackPressed() {
+        if (drawerLayout.isDrawerOpen(Gravity.START)) {
+            drawerLayout.closeDrawer(Gravity.START)
+        } else {
+            super.onBackPressed()
+        }
     }
 
     private fun onMasterToggleClicked() {

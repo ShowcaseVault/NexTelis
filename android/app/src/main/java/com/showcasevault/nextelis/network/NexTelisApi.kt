@@ -1,20 +1,24 @@
 package com.showcasevault.nextelis.network
 
+import com.squareup.moshi.JsonClass
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
 import java.util.UUID
 
+@JsonClass(generateAdapter = true)
 data class UserCreateRequest(
     val email: String,
     val display_name: String
 )
 
+@JsonClass(generateAdapter = true)
 data class ClaimCodeRequest(
     val email: String
 )
 
+@JsonClass(generateAdapter = true)
 data class UserRead(
     val id: UUID,
     val email: String,
@@ -23,18 +27,21 @@ data class UserRead(
     val created_at: String
 )
 
+@JsonClass(generateAdapter = true)
 data class UserWithClaimCode(
     val user: UserRead,
     val claim_code: String,
     val claim_code_expires_at: String
 )
 
+@JsonClass(generateAdapter = true)
 data class DeviceClaimRequest(
     val claim_code: String,
     val device_name: String,
     val push_token: String? = null
 )
 
+@JsonClass(generateAdapter = true)
 data class DeviceRead(
     val id: UUID,
     val name: String,
@@ -43,11 +50,13 @@ data class DeviceRead(
     val created_at: String
 )
 
+@JsonClass(generateAdapter = true)
 data class DeviceClaimResponse(
     val device: DeviceRead,
     val device_token: String
 )
 
+@JsonClass(generateAdapter = true)
 data class NumberRead(
     val id: UUID,
     val value: String,

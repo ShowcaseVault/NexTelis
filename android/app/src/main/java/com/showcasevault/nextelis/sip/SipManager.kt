@@ -2,7 +2,7 @@ package com.showcasevault.nextelis.sip
 
 import android.content.Context
 import android.util.Log
-import com.showcasevault.nextelis.BuildConfig
+import com.showcasevault.nextelis.session.SessionStore
 import org.linphone.core.Account
 import org.linphone.core.Call
 import org.linphone.core.Core
@@ -10,7 +10,6 @@ import org.linphone.core.CoreListenerStub
 import org.linphone.core.Factory
 import org.linphone.core.RegistrationState
 import org.linphone.core.TransportType
-import java.net.URI
 
 /**
  * Owns the Linphone Core: registers this device's NexTelis number to
@@ -24,6 +23,7 @@ object SipManager {
 
     private var core: Core? = null
     private var listener: SipCallListener? = null
+    private var appContext: Context? = null
 
     fun setCallListener(listener: SipCallListener) {
         this.listener = listener
@@ -31,6 +31,8 @@ object SipManager {
 
     /** Registers [number] with Asterisk using [sipPassword]. Safe to call again to re-register. */
     fun start(context: Context, number: String, sipPassword: String) {
+        appContext = context.applicationContext
+
         val existingCore = core
         if (existingCore != null) {
             existingCore.stop()
@@ -86,8 +88,12 @@ object SipManager {
         core?.currentCall?.terminate()
     }
 
-    /** Asterisk host has no separate SIP domain — same LAN address as the backend API. */
-    private fun sipHost(): String = URI(BuildConfig.API_BASE_URL).host
+    /** Asterisk host has no separate SIP domain — same address the user configured for the API. */
+    private fun sipHost(): String {
+        val context = appContext ?: error("SipManager.start() must be called before placing/receiving calls")
+        return SessionStore.getServerHost(context)
+            ?: error("No NexTelis server configured — set one via the Connect to Server screen.")
+    }
 
     private val coreListener = object : CoreListenerStub() {
         override fun onAccountRegistrationStateChanged(

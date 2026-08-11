@@ -1,143 +1,171 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-
-<ScrollView
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/surface_background"
-    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="28dp">
+        android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/textGreeting"
-            style="@style/NT.Text.Label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            tools:text="HEY VISHAL" />
-
-        <!-- Master on/off toggle: the app's single big control -->
-        <LinearLayout
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:gravity="center"
-            android:orientation="vertical">
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/surface_background" />
 
-            <FrameLayout
-                android:id="@+id/btnMasterToggle"
-                android:layout_width="180dp"
-                android:layout_height="180dp"
-                android:layout_marginBottom="16dp"
-                android:background="@drawable/bg_master_toggle"
-                android:clickable="true"
-                android:focusable="true">
-
-                <ImageView
-                    android:layout_width="96dp"
-                    android:layout_height="96dp"
-                    android:layout_gravity="center"
-                    android:contentDescription="@string/app_name"
-                    android:src="@drawable/nextelis_logo" />
-            </FrameLayout>
-
-            <TextView
-                android:id="@+id/textAccountStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_pill_warn"
-                android:paddingHorizontal="14dp"
-                android:paddingVertical="6dp"
-                android:textColor="@color/status_warn"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                tools:text="Not enabled" />
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/textAccountHint"
-            style="@style/NT.Text.Body"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:gravity="center"
-            android:text="@string/home_enable_hint" />
+            android:layout_height="match_parent">
 
-        <!-- Number card -->
-        <LinearLayout
-            style="@style/NT.Card"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:orientation="vertical">
-
-            <TextView
-                style="@style/NT.Text.Label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:text="@string/home_your_number" />
-
-            <TextView
-                android:id="@+id/textNumberValue"
+            <ScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_number_display"
-                android:fontFamily="monospace"
-                android:gravity="center"
-                android:letterSpacing="0.1"
-                android:padding="20dp"
-                android:textColor="@color/brand_primary"
-                android:textSize="26sp"
-                android:textStyle="bold"
-                tools:text="99143207" />
-        </LinearLayout>
+                android:layout_height="match_parent"
+                android:background="@color/surface_background"
+                android:fillViewport="true">
 
-        <!-- How-to card -->
-        <LinearLayout
-            style="@style/NT.Card"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            android:orientation="vertical">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:padding="28dp">
 
-            <TextView
-                style="@style/NT.Text.Title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="@string/home_how_title" />
+                    <TextView
+                        android:id="@+id/textGreeting"
+                        style="@style/NT.Text.Label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="24dp"
+                        tools:text="HEY VISHAL" />
 
-            <TextView
-                style="@style/NT.Text.Body"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/home_how_body" />
-        </LinearLayout>
+                    <!-- Master on/off toggle: the app's single big control -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:gravity="center"
+                        android:orientation="vertical">
 
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
+                        <FrameLayout
+                            android:id="@+id/btnMasterToggle"
+                            android:layout_width="180dp"
+                            android:layout_height="180dp"
+                            android:layout_marginBottom="16dp"
+                            android:background="@drawable/bg_master_toggle"
+                            android:clickable="true"
+                            android:focusable="true">
 
-        <Button
-            android:id="@+id/btnTestCall"
-            style="@style/NT.Button.Primary"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/btn_call_via_nextelis" />
+                            <ImageView
+                                android:layout_width="96dp"
+                                android:layout_height="96dp"
+                                android:layout_gravity="center"
+                                android:contentDescription="@string/app_name"
+                                android:src="@drawable/nextelis_logo" />
+                        </FrameLayout>
 
+                        <TextView
+                            android:id="@+id/textAccountStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_pill_warn"
+                            android:paddingHorizontal="14dp"
+                            android:paddingVertical="6dp"
+                            android:textColor="@color/status_warn"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            tools:text="Not enabled" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/textAccountHint"
+                        style="@style/NT.Text.Body"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="24dp"
+                        android:gravity="center"
+                        android:text="@string/home_enable_hint" />
+
+                    <!-- Number card -->
+                    <LinearLayout
+                        style="@style/NT.Card"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/NT.Text.Label"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="12dp"
+                            android:text="@string/home_your_number" />
+
+                        <TextView
+                            android:id="@+id/textNumberValue"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_number_display"
+                            android:fontFamily="monospace"
+                            android:gravity="center"
+                            android:letterSpacing="0.1"
+                            android:padding="20dp"
+                            android:textColor="@color/brand_primary"
+                            android:textSize="26sp"
+                            android:textStyle="bold"
+                            tools:text="99143207" />
+                    </LinearLayout>
+
+                    <!-- How-to card -->
+                    <LinearLayout
+                        style="@style/NT.Card"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="20dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/NT.Text.Title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:text="@string/home_how_title" />
+
+                        <TextView
+                            style="@style/NT.Text.Body"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/home_how_body" />
+                    </LinearLayout>
+
+                    <Space
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:layout_weight="1" />
+
+                    <Button
+                        android:id="@+id/btnTestCall"
+                        style="@style/NT.Button.Primary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/btn_call_via_nextelis" />
+
+                </LinearLayout>
+            </ScrollView>
+
+            <include layout="@layout/view_loading_overlay" />
+
+        </FrameLayout>
     </LinearLayout>
-</ScrollView>
 
-    <include layout="@layout/view_loading_overlay" />
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/navigationView"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="@color/surface_background" />
 
-</FrameLayout>
+</androidx.drawerlayout.widget.DrawerLayout>

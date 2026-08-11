@@ -1,10 +1,8 @@
 package com.showcasevault.nextelis.network
 
-import com.showcasevault.nextelis.BuildConfig
 import com.showcasevault.nextelis.NexTelisApplication
 import com.showcasevault.nextelis.session.SessionStore
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -12,22 +10,49 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
 
 /**
- * Single Retrofit instance for the NexTelis control-plane API.
+ * Retrofit instance for the NexTelis control-plane API.
  *
- * BASE_URL comes from BuildConfig.API_BASE_URL, which is generated at build
- * time from android/local.properties (nextelis.api.baseUrl) — never
- * hardcoded here. See docs/ARCHITECTURE.md §8 (Local Development
- * Architecture) and android/local.properties for how to point this at your
- * own server.
+ * The base URL is whatever server the user entered on the "Connect to
+ * server" screen (see ServerSetupActivity), stored in SessionStore — this
+ * makes a single APK usable against any NexTelis deployment. There is no
+ * build-time default: [currentBaseUrl] throws if no server is configured,
+ * which should be unreachable since AppFlow always routes there first.
+ *
+ * The client is rebuilt lazily whenever the configured base URL changes —
+ * call [reset] after saving a new server config so the next [api] access
+ * picks it up.
  */
 object NexTelisApiClient {
 
-    val api: NexTelisApi by lazy { buildRetrofit().create(NexTelisApi::class.java) }
+    private var cached: NexTelisApi? = null
+    private var cachedBaseUrl: String? = null
 
-    private fun buildRetrofit(): Retrofit {
+    val api: NexTelisApi
+        get() {
+            val baseUrl = currentBaseUrl()
+            val existing = cached
+            if (existing != null && cachedBaseUrl == baseUrl) return existing
+            return buildRetrofit(baseUrl).create(NexTelisApi::class.java).also {
+                cached = it
+                cachedBaseUrl = baseUrl
+            }
+        }
+
+    /** Forces the next [api] access to rebuild the client against the current server config. */
+    fun reset() {
+        cached = null
+        cachedBaseUrl = null
+    }
+
+    private fun currentBaseUrl(): String {
+        val context = NexTelisApplication.instance
+        return SessionStore.getServerBaseUrl(context)
+            ?: error("No NexTelis server configured — set one via the Connect to Server screen.")
+    }
+
+    private fun buildRetrofit(baseUrl: String): Retrofit {
         val moshi = Moshi.Builder()
             .add(UuidAdapter())
-            .add(KotlinJsonAdapterFactory())
             .build()
 
         val logging = HttpLoggingInterceptor().apply {
@@ -42,7 +67,7 @@ object NexTelisApiClient {
             .build()
 
         return Retrofit.Builder()
-            .baseUrl(BuildConfig.API_BASE_URL)
+            .baseUrl(baseUrl)
             .client(httpClient)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
