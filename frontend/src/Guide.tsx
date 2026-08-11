@@ -26,8 +26,8 @@ python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().d
   {
     title: "Start everything",
     body: "One command brings up Postgres, Asterisk, the FastAPI backend, and this site. Database migrations run automatically as the backend starts.",
-    code: "make up",
-    note: "First run builds the images and takes a few minutes. After that it is seconds.",
+    code: "make up-all",
+    note: "First run builds the images and takes a few minutes, then seconds after that. For development, make up starts only Postgres and Asterisk so you can run the backend on the host with make dev.",
   },
   {
     title: "Check it came up",
@@ -181,7 +181,8 @@ export default function Guide() {
           <div className="stack">
             {[
               ["make help", "List every target with a one-line description."],
-              ["make up", "Start Postgres, Asterisk, the backend, and this site."],
+              ["make up", "Start Postgres and Asterisk only."],
+              ["make up-all", "Start those plus the backend and this site."],
               ["make down", "Stop everything."],
               [
                 "make check",

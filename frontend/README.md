@@ -13,16 +13,26 @@ with `/api/` forwarded to the FastAPI backend on port 8000.
 
 ## Running it
 
+Day to day, run the infrastructure in Docker and this site on the host:
+
 ```bash
-make up                   # everything: Postgres, Asterisk, backend, this site
-make logs s=frontend      # tail nginx logs
-make rebuild s=frontend   # rebuild + restart after editing the site
-make web                  # Vite dev server with hot reload (does not proxy /api)
+make up      # Postgres + Asterisk
+make dev     # backend on :8000
+make web     # Vite dev server, hot reload, proxies /api to :8000
 ```
 
-The backend is a compose service, so nginx reaches it by service name on the
-internal network. `make dev` is the alternative for running the backend
-directly on the host — use one or the other, since both bind port 8000.
+To run the whole thing containerized instead — how it actually ships:
+
+```bash
+make up-all               # adds the backend and this site on :8080
+make logs s=frontend      # tail nginx logs
+make rebuild s=frontend   # rebuild + restart after editing the site
+```
+
+The two modes both bind ports 8000 and 8080, so use one or the other. In
+containerized mode nginx reaches the backend by service name on the compose
+network; in dev mode Vite proxies to `localhost:8000` instead
+(`vite.config.ts`), so `/api` behaves identically either way.
 
 ## Pages
 

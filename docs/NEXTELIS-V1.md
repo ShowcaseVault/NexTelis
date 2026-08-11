@@ -206,14 +206,16 @@ installs cannot be upgraded in place.
 **Backend + telephony:**
 
 ```bash
-make up      # Postgres, Asterisk, backend, and the project site on :8080
-make check   # SIP endpoints, live registrations, channels, uptime
+make up-all   # Postgres, Asterisk, backend, and the project site on :8080
+make check    # SIP endpoints, live registrations, channels, uptime
 ```
 
-Migrations run automatically as the backend container starts. `make help`
-lists every target. To run the backend on the host instead (for a debugger or
-reload-on-save), use `make dev` — but stop the container first, since both
-bind port 8000.
+Migrations run automatically as the backend container starts.
+
+For development, `make up` brings up only Postgres and Asterisk, leaving the
+backend and site to run on the host via `make dev` and `make web` (with a
+debugger and hot reload). The two modes both bind ports 8000 and 8080, so use
+one or the other. `make help` lists every target.
 
 **Android:**
 
