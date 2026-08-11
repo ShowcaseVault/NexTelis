@@ -233,3 +233,7 @@ android/.cxx/
 
 # APK builds are distributed via GitHub Releases, not committed to git
 releases/*.apk
+
+# Frontend build output / deps
+frontend/node_modules/
+frontend/dist/

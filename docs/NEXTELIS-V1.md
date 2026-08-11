@@ -206,10 +206,14 @@ installs cannot be upgraded in place.
 **Backend + telephony:**
 
 ```bash
-docker compose up -d          # Postgres + Asterisk
-python -m alembic upgrade head
-uvicorn backend.main:app --host 0.0.0.0 --port 8000
+make up      # Postgres, Asterisk, backend, and the project site on :8080
+make check   # SIP endpoints, live registrations, channels, uptime
 ```
+
+Migrations run automatically as the backend container starts. `make help`
+lists every target. To run the backend on the host instead (for a debugger or
+reload-on-save), use `make dev` — but stop the container first, since both
+bind port 8000.
 
 **Android:**
 

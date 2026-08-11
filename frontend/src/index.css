@@ -1,0 +1,93 @@
+/*
+ * NexTelis brand tokens — mirrored from
+ * android/app/src/main/res/values/colors.xml so the site and the app stay
+ * visually identical. Roles, not hue names: a rebrand means editing hex
+ * values here only.
+ */
+:root {
+  --brand-primary: #f5821f;
+  --brand-primary-variant: #c9660f;
+  --brand-primary-on: #1a0d02;
+
+  --surface-background: #0b0b0b;
+  --surface-card: #161616;
+  --surface-card-alt: #1f1f1f;
+  --surface-border: #2c2c2c;
+
+  --text-primary: #f7f7f7;
+  --text-secondary: #ababab;
+  --text-muted: #767676;
+
+  --status-good: #3fe07a;
+  --status-warn: #f2b84b;
+  --status-bad: #f2564b;
+
+  --max-width: 1120px;
+  --radius: 14px;
+  --radius-sm: 8px;
+
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--surface-background);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+/* Visible focus for keyboard users, suppressed for mouse clicks. */
+:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
