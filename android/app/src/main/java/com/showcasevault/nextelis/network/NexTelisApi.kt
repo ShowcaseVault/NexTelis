@@ -66,6 +66,12 @@ data class NumberRead(
     val sip_password: String
 )
 
+@JsonClass(generateAdapter = true)
+data class NumberLookupResult(
+    val value: String,
+    val display_name: String
+)
+
 // Mirrors backend/api/v1/routes (users, devices, numbers) — see docs/ARCHITECTURE.md for the control-plane contract.
 interface NexTelisApi {
 
@@ -83,4 +89,7 @@ interface NexTelisApi {
 
     @GET("api/v1/users/{userId}/number")
     suspend fun getNumber(@Path("userId") userId: UUID): NumberRead
+
+    @GET("api/v1/numbers/{value}")
+    suspend fun lookupNumber(@Path("value") value: String): NumberLookupResult
 }

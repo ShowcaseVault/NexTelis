@@ -57,4 +57,9 @@ class NexTelisConnection(private val isIncoming: Boolean) : Connection() {
         setDisconnected(DisconnectCause(DisconnectCause.REJECTED))
         destroy()
     }
+
+    /** Called once the async NexTelis directory lookup resolves — see NexTelisConnectionService. */
+    fun applyCallerDisplayName(name: String) {
+        setCallerDisplayName(name, android.telecom.TelecomManager.PRESENTATION_ALLOWED)
+    }
 }

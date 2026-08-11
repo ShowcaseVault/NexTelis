@@ -19,3 +19,8 @@ class NumberRead(BaseModel):
     user_id: uuid.UUID
     created_at: datetime
     sip_password: str
+
+
+class NumberLookupResult(BaseModel):
+    value: str
+    display_name: str

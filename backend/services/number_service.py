@@ -57,3 +57,12 @@ class NumberService:
         if not number.is_active:
             raise ConflictError(f"number {value!r} is not active")
         return number
+
+    async def lookup_display_name(self, value: str) -> str:
+        number = await self.number_repository.get_by_value(value)
+        if number is None:
+            raise NotFoundError(f"number {value!r} not found")
+        user = await self.user_repository.get(number.user_id)
+        if user is None:
+            raise NotFoundError(f"number {value!r} has no owning user")
+        return user.display_name

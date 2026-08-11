@@ -5,10 +5,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from backend.api.deps import CurrentDeviceDep, get_number_service
 from backend.core.exceptions import ConflictError, NotFoundError
-from backend.schemas.number import NumberRead
+from backend.schemas.number import NumberLookupResult, NumberRead
 from backend.services.number_service import NumberService
 
 router = APIRouter(prefix="/users/{user_id}/number", tags=["numbers"])
+lookup_router = APIRouter(prefix="/numbers", tags=["numbers"])
 
 NumberServiceDep = Annotated[NumberService, Depends(get_number_service)]
 
@@ -52,3 +53,19 @@ async def get_number(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
         ) from exc
+
+
+@lookup_router.get("/{value}", response_model=NumberLookupResult)
+async def lookup_number(
+    value: str, caller: CurrentDeviceDep, service: NumberServiceDep
+) -> NumberLookupResult:
+    """Resolves a NexTelis number to its owner's display name — used by
+    clients to show a caller-ID name for incoming calls even when the
+    number isn't saved in the local phone contacts."""
+    try:
+        display_name = await service.lookup_display_name(value)
+    except NotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
+        ) from exc
+    return NumberLookupResult(value=value, display_name=display_name)
