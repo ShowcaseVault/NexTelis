@@ -98,6 +98,16 @@ class HomeActivity : AppCompatActivity() {
         renderGreeting()
         renderNumber()
         renderAccountStatus()
+
+        // Telecom can still report the old isEnabled value for a moment after
+        // the user flips the toggle in Settings, so the render above may show
+        // "not enabled" for an account that now is. Re-check shortly after to
+        // pick up the new value without making the user reopen the screen.
+        if (PhoneAccountManager.getStatus(this) != AccountStatus.ENABLED) {
+            btnMasterToggle.postDelayed({
+                if (!isFinishing) renderAccountStatus()
+            }, ACCOUNT_RECHECK_DELAY_MS)
+        }
     }
 
     override fun onBackPressed() {
@@ -171,5 +181,9 @@ class HomeActivity : AppCompatActivity() {
         // Opens the device's default dialer; Android shows the SIM / NexTelis
         // account chooser itself once the account is enabled.
         startActivity(Intent(Intent.ACTION_DIAL))
+    }
+
+    private companion object {
+        const val ACCOUNT_RECHECK_DELAY_MS = 600L
     }
 }

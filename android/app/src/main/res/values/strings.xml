@@ -60,6 +60,11 @@
     <string name="home_how_title">How to call with NexTelis</string>
     <string name="home_how_body">Dial any number as usual. When Android asks which account to call with, choose NexTelis.</string>
 
+    <!-- Leaving pairing after an account has already been created -->
+    <string name="pair_leave_title">Leave this screen?</string>
+    <string name="pair_leave_message">Your account was already created on this server. The recovery code shown here is not saved anywhere and cannot be displayed again — make sure you have copied it before leaving.</string>
+    <string name="pair_leave_confirm">Go back anyway</string>
+
     <!-- SIP service -->
     <string name="sip_notification_channel_name">NexTelis calling</string>
     <string name="sip_notification_title">NexTelis is active</string>

@@ -14,6 +14,15 @@ object PhoneAccountManager {
     private const val ACCOUNT_ID = "nextelis_account"
     private const val ACCOUNT_LABEL = "NexTelis"
 
+    // Bumped whenever the PhoneAccount's properties change in a way that
+    // requires re-registering an already-registered account. Re-registration
+    // silently disables the account, so this must change only when necessary.
+    //   1 -> added supported URI schemes (TEL, SIP)
+    private const val ACCOUNT_VERSION = 1
+
+    private const val PREFS_NAME = "nextelis_telecom"
+    private const val KEY_REGISTERED_VERSION = "registered_account_version"
+
     fun getHandle(context: Context): PhoneAccountHandle {
         return PhoneAccountHandle(
             ComponentName(context, NexTelisConnectionService::class.java),
@@ -34,8 +43,18 @@ object PhoneAccountManager {
         // properties we now depend on (notably supported URI schemes, whose
         // absence stops Telecom routing dialer calls to us at all). Those
         // must be re-registered once, at the cost of the user re-enabling.
-        val existing = readPhoneAccount(context)
-        if (existing != null && existing.supportedUriSchemes.isNotEmpty()) return
+        //
+        // That "needs upgrading?" decision is recorded locally rather than
+        // re-derived from the live PhoneAccount on each launch. Reading it
+        // back is not reliable enough to gate a destructive write:
+        // getPhoneAccount() can return a stale copy for a short window after
+        // the user toggles the account in Settings, and returns null outright
+        // if READ_PHONE_NUMBERS is denied. Either would look like "not
+        // upgraded yet" and re-register, wiping the toggle the user just set.
+        //
+        // The flag lives in app storage, so clearing app data clears it too —
+        // exactly when Telecom drops the account and we do need to re-register.
+        if (registeredVersion(context) == ACCOUNT_VERSION) return
 
         val handle = getHandle(context)
         // CAPABILITY_CALL_PROVIDER (not SELF_MANAGED): self-managed apps
@@ -61,7 +80,21 @@ object PhoneAccountManager {
             .build()
 
         telecomManager(context).registerPhoneAccount(account)
+        setRegisteredVersion(context, ACCOUNT_VERSION)
         Log.d(TAG, "PhoneAccount registered: $handle")
+    }
+
+    private fun prefs(context: Context) =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    private fun registeredVersion(context: Context): Int =
+        prefs(context).getInt(KEY_REGISTERED_VERSION, 0)
+
+    // Committed synchronously: if the process dies between registering the
+    // account and persisting this, the next launch re-registers and disables
+    // an account the user may have already enabled.
+    private fun setRegisteredVersion(context: Context, version: Int) {
+        prefs(context).edit().putInt(KEY_REGISTERED_VERSION, version).commit()
     }
 
     fun isRegistered(context: Context): Boolean = readPhoneAccount(context) != null

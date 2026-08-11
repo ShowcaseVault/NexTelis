@@ -2,12 +2,14 @@ package com.showcasevault.nextelis.onboarding
 
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.textfield.TextInputEditText
@@ -52,6 +54,7 @@ class PairDeviceActivity : AppCompatActivity() {
     private lateinit var loadingOverlay: LoadingOverlay
     private lateinit var btnRegister: Button
     private lateinit var btnClaimDevice: Button
+    private lateinit var btnChangeServer: Button
 
     private var claimCode: String? = null
     private var recoveryCode: String? = null
@@ -77,12 +80,44 @@ class PairDeviceActivity : AppCompatActivity() {
         loadingOverlay = LoadingOverlay(findViewById(android.R.id.content))
         btnRegister = findViewById(R.id.btnRegister)
         btnClaimDevice = findViewById(R.id.btnClaimDevice)
+        btnChangeServer = findViewById(R.id.btnChangeServer)
 
+        btnChangeServer.setOnClickListener { onChangeServerClicked() }
         btnRegister.setOnClickListener { onRegisterClicked() }
         btnCopyRecoveryCode.setOnClickListener { copyRecoveryCode() }
         checkRecoverySaved.setOnCheckedChangeListener { _, checked -> btnClaimDevice.isEnabled = checked }
         btnSubmitRecoveryCode.setOnClickListener { onSubmitRecoveryCodeClicked() }
         btnClaimDevice.setOnClickListener { onClaimClicked() }
+    }
+
+    /**
+     * Returns to server setup. The server address is saved before this screen
+     * opens, so this is the only way to correct a typo in it — otherwise back
+     * exits the app and relaunching lands here again.
+     */
+    private fun onChangeServerClicked() {
+        // Once registration has happened the account exists on the server and
+        // its recovery code has already been shown once. Leaving now strands
+        // it, so make that consequence explicit rather than silently discarding.
+        if (recoveryCode != null || claimCode != null) {
+            AlertDialog.Builder(this)
+                .setTitle(R.string.pair_leave_title)
+                .setMessage(R.string.pair_leave_message)
+                .setPositiveButton(R.string.pair_leave_confirm) { _, _ -> returnToServerSetup() }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+            return
+        }
+        returnToServerSetup()
+    }
+
+    private fun returnToServerSetup() {
+        // The saved host/port is deliberately left in place: ServerSetupActivity
+        // prefills from it, so correcting one wrong digit doesn't mean retyping
+        // the whole address. It overwrites the values and resets the API client
+        // when the user continues.
+        startActivity(Intent(this, ServerSetupActivity::class.java))
+        finish()
     }
 
     private fun onRegisterClicked() {

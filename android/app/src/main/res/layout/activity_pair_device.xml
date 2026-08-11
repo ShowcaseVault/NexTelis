@@ -258,6 +258,17 @@
             android:textColor="@color/status_bad"
             android:visibility="gone" />
 
+        <!-- The server address is saved before this screen is reached, so
+             without this a typo in it is unrecoverable: back exits the app and
+             relaunching routes straight back here. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnChangeServer"
+            style="@style/NT.Button.Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/btn_change_server" />
+
     </LinearLayout>
 </ScrollView>
 
