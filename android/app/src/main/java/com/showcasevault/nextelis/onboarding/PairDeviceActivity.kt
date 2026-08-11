@@ -95,6 +95,9 @@ class PairDeviceActivity : AppCompatActivity() {
         }
 
         clearError()
+        // Re-running registration (e.g. after correcting a typo'd email)
+        // must not leave the previous attempt's cards on screen.
+        resetSteps()
         setLoading(true)
         lifecycleScope.launch {
             try {
@@ -146,14 +149,31 @@ class PairDeviceActivity : AppCompatActivity() {
         }
     }
 
+    /** Returns the screen to "step 1 only", clearing any issued secrets. */
+    private fun resetSteps() {
+        sectionRecoveryCode.visibility = LinearLayout.GONE
+        sectionRecoveryInput.visibility = LinearLayout.GONE
+        sectionClaim.visibility = LinearLayout.GONE
+        recoveryCode = null
+        claimCode = null
+        pendingReissueEmail = null
+    }
+
     private fun copyRecoveryCode() {
         val code = recoveryCode ?: return
         val clipboard = getSystemService(ClipboardManager::class.java)
         clipboard.setPrimaryClip(ClipData.newPlainText("NexTelis recovery code", code))
     }
 
+    /**
+     * The three lower cards are mutually exclusive states, so every
+     * transition sets all of them rather than only switching one on —
+     * otherwise a re-pair attempt after a fresh registration would stack
+     * its prompt underneath the previous account's recovery code.
+     */
     private fun showRecoveryCodeStep(result: UserRegisteredResponse) {
         sectionRecoveryCode.visibility = LinearLayout.VISIBLE
+        sectionRecoveryInput.visibility = LinearLayout.GONE
         textRecoveryCode.text = result.recovery_code
         checkRecoverySaved.isChecked = false
         showClaimStep(result.claim_code, result.claim_code_expires_at)
@@ -162,6 +182,13 @@ class PairDeviceActivity : AppCompatActivity() {
 
     private fun showRecoveryInputStep() {
         sectionRecoveryInput.visibility = LinearLayout.VISIBLE
+        // Never leave a previous attempt's recovery code (or the claim code
+        // it issued) on screen — they belong to a different registration.
+        sectionRecoveryCode.visibility = LinearLayout.GONE
+        sectionClaim.visibility = LinearLayout.GONE
+        recoveryCode = null
+        claimCode = null
+        inputRecoveryCode.text = null
     }
 
     private fun onClaimClicked() {
@@ -214,7 +241,12 @@ class PairDeviceActivity : AppCompatActivity() {
     private fun setLoading(loading: Boolean) {
         if (loading) loadingOverlay.show() else loadingOverlay.hide()
         btnRegister.isEnabled = !loading
-        btnClaimDevice.isEnabled = !loading
+        btnSubmitRecoveryCode.isEnabled = !loading
+        // Pairing stays gated on the "I've saved my recovery code" checkbox
+        // when we just issued one — clearing the loading state must not
+        // silently re-enable it and let the user skip saving the code.
+        btnClaimDevice.isEnabled = !loading &&
+                (recoveryCode == null || checkRecoverySaved.isChecked)
     }
 
     private fun showError(message: String) {
