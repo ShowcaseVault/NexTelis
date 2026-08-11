@@ -1,4 +1,5 @@
-.PHONY: help up up-all down build rebuild clean logs psql cli check dev web
+.PHONY: help up up-all down build rebuild clean logs psql cli check dev web \
+        apk publish
 
 
 DC := docker compose -f compose.datastore.yaml -f compose.yaml
@@ -50,3 +51,10 @@ dev: ## Run the backend on the host (port 8000)
 
 web: ## Vite dev server with hot reload, proxies /api to localhost:8000
 	cd frontend && npm run dev
+
+# ── Android release ────────────────────────────────────────
+apk: ## Build the signed release APK into releases/
+	bash scripts/build-release.sh --release
+
+publish: ## Publish releases/ APK as a GitHub release (tag from versionName)
+	bash scripts/publish-release.sh
