@@ -60,24 +60,15 @@
                     android:layout_height="wrap_content"
                     android:textColor="@color/text_primary"
                     android:inputType="textUri"
-                    tools:text="192.168.1.50" />
+                    tools:text="192.168.1.50:8000" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/NT.EditText"
+            <TextView
+                style="@style/NT.Text.Caption"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
-                android:hint="@string/server_setup_port_hint">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/inputServerPort"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/text_primary"
-                    android:inputType="number"
-                    tools:text="8000" />
-            </com.google.android.material.textfield.TextInputLayout>
+                android:text="@string/server_setup_examples" />
 
             <Button
                 android:id="@+id/btnConnect"

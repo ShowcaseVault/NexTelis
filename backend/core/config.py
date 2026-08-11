@@ -35,6 +35,9 @@ class Settings(BaseSettings):
 
     database_url: str
 
+    sip_host: str | None = None
+    sip_port: int = 5060
+
     # Connection pool (SQLAlchemy AsyncAdaptedQueuePool)
     db_pool_size: int = 5
     db_max_overflow: int = 10

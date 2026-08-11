@@ -16,15 +16,34 @@ object SessionStore {
     private const val KEY_SIP_PASSWORD = "sip_password"
     private const val KEY_SERVER_HOST = "server_host"
     private const val KEY_SERVER_PORT = "server_port"
+    private const val KEY_SERVER_SCHEME = "server_scheme"
+    private const val KEY_SIP_HOST = "sip_host"
+
+    // A bare LAN address has no TLS in front of it, so it stays http. A domain
+    // is assumed to be a real deployment behind a reverse proxy on 443.
+    const val SCHEME_HTTP = "http"
+    const val SCHEME_HTTPS = "https"
+
+    // Sentinel for "no explicit port" — use the scheme's default (80/443).
+    const val PORT_DEFAULT = 0
 
     private fun prefs(context: Context) =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    /** Saves the NexTelis server this device should talk to. Clears any cached API client. */
-    fun saveServerConfig(context: Context, host: String, port: Int) {
+    /**
+     * Saves the NexTelis server this device should talk to. Pass
+     * [PORT_DEFAULT] to omit the port and use the scheme's default.
+     */
+    fun saveServerConfig(
+        context: Context,
+        host: String,
+        port: Int,
+        scheme: String = SCHEME_HTTP,
+    ) {
         prefs(context).edit()
             .putString(KEY_SERVER_HOST, host)
             .putInt(KEY_SERVER_PORT, port)
+            .putString(KEY_SERVER_SCHEME, scheme)
             .apply()
     }
 
@@ -32,13 +51,36 @@ object SessionStore {
 
     fun getServerPort(context: Context): Int = prefs(context).getInt(KEY_SERVER_PORT, 8000)
 
+    fun getServerScheme(context: Context): String =
+        prefs(context).getString(KEY_SERVER_SCHEME, null) ?: SCHEME_HTTP
+
     fun hasServerConfig(context: Context): Boolean = getServerHost(context) != null
 
-    /** e.g. "http://192.168.1.50:8000/" — the base URL for the API and the SIP host. */
+    /**
+     * e.g. "http://192.168.1.50:8000/" or "https://calls.example.com/" — the
+     * base URL for the API. The port is omitted when the scheme's default
+     * applies, which is the normal case for a domain behind a reverse proxy.
+     */
     fun getServerBaseUrl(context: Context): String? {
         val host = getServerHost(context) ?: return null
-        return "http://$host:${getServerPort(context)}/"
+        val port = getServerPort(context)
+        val authority = if (port == PORT_DEFAULT) host else "$host:$port"
+        return "${getServerScheme(context)}://$authority/"
     }
+
+    /** Caches the SIP host the server reported. Null clears it. */
+    fun saveSipHost(context: Context, sipHost: String?) {
+        prefs(context).edit().putString(KEY_SIP_HOST, sipHost).apply()
+    }
+
+    /**
+     * Where to send SIP traffic. Falls back to the API host when the server
+     * doesn't declare one, which is correct only when the API and Asterisk
+     * share an address — notably NOT when the API is behind an HTTP tunnel,
+     * since SIP is UDP and cannot traverse one.
+     */
+    fun getSipHost(context: Context): String? =
+        prefs(context).getString(KEY_SIP_HOST, null) ?: getServerHost(context)
 
     fun savePairing(context: Context, userId: String, deviceToken: String, displayName: String) {
         prefs(context).edit()

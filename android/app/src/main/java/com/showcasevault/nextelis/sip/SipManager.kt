@@ -122,10 +122,15 @@ object SipManager {
         core?.currentCall?.terminate()
     }
 
-    /** Asterisk host has no separate SIP domain — same address the user configured for the API. */
+    /**
+     * Where Asterisk is reachable. Usually the same address configured for the
+     * API, but not always: the API can sit behind a reverse proxy or an HTTP
+     * tunnel, whereas SIP is UDP and must reach the server directly. The
+     * backend reports the right host via /server/info.
+     */
     private fun sipHost(): String {
         val context = appContext ?: error("SipManager.start() must be called before placing/receiving calls")
-        return SessionStore.getServerHost(context)
+        return SessionStore.getSipHost(context)
             ?: error("No NexTelis server configured — set one via the Connect to Server screen.")
     }
 

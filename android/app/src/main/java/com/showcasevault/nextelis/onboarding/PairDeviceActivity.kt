@@ -85,7 +85,10 @@ class PairDeviceActivity : AppCompatActivity() {
         btnChangeServer.setOnClickListener { onChangeServerClicked() }
         btnRegister.setOnClickListener { onRegisterClicked() }
         btnCopyRecoveryCode.setOnClickListener { copyRecoveryCode() }
-        checkRecoverySaved.setOnCheckedChangeListener { _, checked -> btnClaimDevice.isEnabled = checked }
+        // The button stays enabled while the checkbox is unticked so tapping it
+        // can explain why it won't proceed. A disabled button swallows the tap
+        // and looks broken instead.
+        checkRecoverySaved.setOnCheckedChangeListener { _, _ -> clearError() }
         btnSubmitRecoveryCode.setOnClickListener { onSubmitRecoveryCodeClicked() }
         btnClaimDevice.setOnClickListener { onClaimClicked() }
     }
@@ -212,7 +215,6 @@ class PairDeviceActivity : AppCompatActivity() {
         textRecoveryCode.text = result.recovery_code
         checkRecoverySaved.isChecked = false
         showClaimStep(result.claim_code, result.claim_code_expires_at)
-        btnClaimDevice.isEnabled = false
     }
 
     private fun showRecoveryInputStep() {
@@ -229,6 +231,14 @@ class PairDeviceActivity : AppCompatActivity() {
     private fun onClaimClicked() {
         val claimCode = claimCode ?: return
         val displayName = inputDisplayName.text?.toString()?.trim().orEmpty()
+
+        // Only gate on the checkbox when a recovery code was actually shown
+        // this session; re-pairing with an existing code never displays one.
+        if (recoveryCode != null && !checkRecoverySaved.isChecked) {
+            showError(getString(R.string.pair_error_confirm_recovery_saved))
+            checkRecoverySaved.requestFocus()
+            return
+        }
 
         clearError()
         setLoading(true)
@@ -277,11 +287,10 @@ class PairDeviceActivity : AppCompatActivity() {
         if (loading) loadingOverlay.show() else loadingOverlay.hide()
         btnRegister.isEnabled = !loading
         btnSubmitRecoveryCode.isEnabled = !loading
-        // Pairing stays gated on the "I've saved my recovery code" checkbox
-        // when we just issued one — clearing the loading state must not
-        // silently re-enable it and let the user skip saving the code.
-        btnClaimDevice.isEnabled = !loading &&
-                (recoveryCode == null || checkRecoverySaved.isChecked)
+        // Pairing is still gated on the "I've saved my recovery code" checkbox,
+        // but that check lives in onClaimClicked so the tap can say why it was
+        // refused. Here the button only tracks the in-flight request.
+        btnClaimDevice.isEnabled = !loading
     }
 
     private fun showError(message: String) {

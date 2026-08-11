@@ -53,6 +53,7 @@ class AccountActivity : AppCompatActivity() {
 
         val host = SessionStore.getServerHost(this).orEmpty()
         val port = SessionStore.getServerPort(this)
-        textServerAddress.text = "$host:$port"
+        textServerAddress.text =
+            if (port == SessionStore.PORT_DEFAULT) host else "$host:$port"
     }
 }

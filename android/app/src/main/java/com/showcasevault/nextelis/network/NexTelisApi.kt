@@ -81,8 +81,23 @@ data class NumberLookupResult(
     val display_name: String
 )
 
+/**
+ * Where this deployment's SIP server lives. Separate from the API's address
+ * because SIP/RTP are UDP and can't traverse an HTTP tunnel or proxy that the
+ * API may sit behind. Null sip_host means the server didn't configure one, so
+ * the device should fall back to the API host.
+ */
+@JsonClass(generateAdapter = true)
+data class ServerInfo(
+    val sip_host: String?,
+    val sip_port: Int
+)
+
 // Mirrors backend/api/v1/routes (users, devices, numbers) — see docs/ARCHITECTURE.md for the control-plane contract.
 interface NexTelisApi {
+
+    @GET("api/v1/server/info")
+    suspend fun getServerInfo(): ServerInfo
 
     @POST("api/v1/users")
     suspend fun registerUser(@Body body: UserCreateRequest): UserRegisteredResponse
