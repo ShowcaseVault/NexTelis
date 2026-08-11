@@ -1,7 +1,23 @@
 # NexTelis Android App
 
-See [../docs/PROJECT.md](../docs/PROJECT.md), [../docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md),
-and [../docs/FINDINGS.md](../docs/FINDINGS.md) for project context.
+See [../docs/NEXTELIS-V1.md](../docs/NEXTELIS-V1.md) §5 for what the app does
+as of v1, and [../docs/PROJECT.md](../docs/PROJECT.md),
+[../docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md), and
+[../docs/FINDINGS.md](../docs/FINDINGS.md) for project context.
+
+## Onboarding flow
+
+Each screen is gated on the previous one (`onboarding/AppFlow.kt` routes):
+
+```text
+ServerSetupActivity → PairDeviceActivity → PermissionsActivity
+    → GetNumberActivity → HomeActivity
+```
+
+`PairDeviceActivity` registers the user and shows the **one-time recovery
+code**, which must be saved before the device can be paired — it's the only
+way to re-pair this account to a new device later. If the email is already
+registered, the same screen prompts for that code instead.
 
 ## Setup
 

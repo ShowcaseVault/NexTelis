@@ -86,6 +86,111 @@
                 android:text="Continue" />
         </LinearLayout>
 
+        <!-- Shown only on a fresh registration (not on re-pair): the
+             one-time recovery code the user must save to re-pair later. -->
+        <LinearLayout
+            android:id="@+id/sectionRecoveryCode"
+            style="@style/NT.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                style="@style/NT.Text.Title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="Save your recovery code" />
+
+            <TextView
+                style="@style/NT.Text.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:text="You'll need this to re-pair your number if you reinstall the app or switch phones. It is shown only once — store it somewhere safe." />
+
+            <TextView
+                android:id="@+id/textRecoveryCode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_number_display"
+                android:fontFamily="monospace"
+                android:gravity="center"
+                android:padding="16dp"
+                android:textColor="@color/status_good"
+                android:textIsSelectable="true"
+                android:textSize="16sp"
+                tools:text="nUuNL3jKapkqKYn5jLl-D-Wmd6qHQfAl"
+                xmlns:tools="http://schemas.android.com/tools" />
+
+            <Button
+                android:id="@+id/btnCopyRecoveryCode"
+                style="@style/NT.Button.Text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:text="Copy to clipboard" />
+
+            <CheckBox
+                android:id="@+id/checkRecoverySaved"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="I've saved my recovery code"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- Shown only on a re-pair (email already registered): proves
+             ownership of the account without needing an existing device. -->
+        <LinearLayout
+            android:id="@+id/sectionRecoveryInput"
+            style="@style/NT.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                style="@style/NT.Text.Title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="This email is already registered" />
+
+            <TextView
+                style="@style/NT.Text.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:text="Enter the recovery code you saved when you first registered to pair this device to your existing number." />
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/NT.EditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="14dp"
+                android:hint="Recovery code">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/inputRecoveryCode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_primary"
+                    android:inputType="textVisiblePassword" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Button
+                android:id="@+id/btnSubmitRecoveryCode"
+                style="@style/NT.Button.Primary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Verify and continue" />
+        </LinearLayout>
+
         <!-- Step 2: pairing code (shown once registration succeeds) -->
         <LinearLayout
             android:id="@+id/sectionClaim"

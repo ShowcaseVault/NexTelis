@@ -15,8 +15,8 @@ android {
         applicationId = "com.showcasevault.nextelis"
         minSdk = 26
         targetSdk = 36
-        versionCode = 6
-        versionName = "0.6"
+        versionCode = 10
+        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

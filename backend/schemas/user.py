@@ -27,11 +27,23 @@ class UserWithClaimCode(BaseModel):
     claim_code_expires_at: datetime
 
 
-class ClaimCodeRequest(BaseModel):
-    """Re-pair an existing user (e.g. after reinstalling the app).
+class UserRegisteredResponse(UserWithClaimCode):
+    """Registration response only — includes the one-time recovery code.
 
-    Pilot-stage tradeoff: proof of ownership is the claim code alone once
-    issued, with no password/email verification — see docs/FINDINGS.md.
+    The recovery code is never returned again after this call. The user
+    (or app, on their behalf) must store it to re-pair a future device.
+    """
+
+    recovery_code: str
+
+
+class ClaimCodeRequest(BaseModel):
+    """Re-pair an existing user to a new device (e.g. after reinstalling
+    the app or losing the original device).
+
+    Requires the recovery code issued at registration, alongside email —
+    email alone is not proof of ownership. See docs/FINDINGS.md.
     """
 
     email: EmailStr
+    recovery_code: str

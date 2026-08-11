@@ -1,8 +1,11 @@
 package com.showcasevault.nextelis.onboarding
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.os.Build
 import android.os.Bundle
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -13,7 +16,7 @@ import com.showcasevault.nextelis.network.ClaimCodeRequest
 import com.showcasevault.nextelis.network.DeviceClaimRequest
 import com.showcasevault.nextelis.network.NexTelisApiClient
 import com.showcasevault.nextelis.network.UserCreateRequest
-import com.showcasevault.nextelis.network.UserWithClaimCode
+import com.showcasevault.nextelis.network.UserRegisteredResponse
 import com.showcasevault.nextelis.session.SessionStore
 import com.showcasevault.nextelis.ui.LoadingOverlay
 import kotlinx.coroutines.launch
@@ -26,11 +29,22 @@ import java.time.format.DateTimeParseException
  * Screen 1 of onboarding: register the user, then pair (claim) this
  * specific device using the one-time claim code the backend returns.
  * See backend/api/v1/routes/users.py and devices.py for the contract.
+ *
+ * If the email is already registered (409), the account can only be
+ * re-paired by proving ownership with the recovery code shown once at
+ * registration — email alone is not enough (see docs/FINDINGS.md).
  */
 class PairDeviceActivity : AppCompatActivity() {
 
     private lateinit var inputDisplayName: TextInputEditText
     private lateinit var inputEmail: TextInputEditText
+    private lateinit var sectionRecoveryCode: LinearLayout
+    private lateinit var textRecoveryCode: TextView
+    private lateinit var btnCopyRecoveryCode: Button
+    private lateinit var checkRecoverySaved: CheckBox
+    private lateinit var sectionRecoveryInput: LinearLayout
+    private lateinit var inputRecoveryCode: TextInputEditText
+    private lateinit var btnSubmitRecoveryCode: Button
     private lateinit var sectionClaim: LinearLayout
     private lateinit var textClaimCode: TextView
     private lateinit var textClaimExpiry: TextView
@@ -39,7 +53,9 @@ class PairDeviceActivity : AppCompatActivity() {
     private lateinit var btnRegister: Button
     private lateinit var btnClaimDevice: Button
 
-    private var registration: UserWithClaimCode? = null
+    private var claimCode: String? = null
+    private var recoveryCode: String? = null
+    private var pendingReissueEmail: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +63,13 @@ class PairDeviceActivity : AppCompatActivity() {
 
         inputDisplayName = findViewById(R.id.inputDisplayName)
         inputEmail = findViewById(R.id.inputEmail)
+        sectionRecoveryCode = findViewById(R.id.sectionRecoveryCode)
+        textRecoveryCode = findViewById(R.id.textRecoveryCode)
+        btnCopyRecoveryCode = findViewById(R.id.btnCopyRecoveryCode)
+        checkRecoverySaved = findViewById(R.id.checkRecoverySaved)
+        sectionRecoveryInput = findViewById(R.id.sectionRecoveryInput)
+        inputRecoveryCode = findViewById(R.id.inputRecoveryCode)
+        btnSubmitRecoveryCode = findViewById(R.id.btnSubmitRecoveryCode)
         sectionClaim = findViewById(R.id.sectionClaim)
         textClaimCode = findViewById(R.id.textClaimCode)
         textClaimExpiry = findViewById(R.id.textClaimExpiry)
@@ -56,6 +79,9 @@ class PairDeviceActivity : AppCompatActivity() {
         btnClaimDevice = findViewById(R.id.btnClaimDevice)
 
         btnRegister.setOnClickListener { onRegisterClicked() }
+        btnCopyRecoveryCode.setOnClickListener { copyRecoveryCode() }
+        checkRecoverySaved.setOnCheckedChangeListener { _, checked -> btnClaimDevice.isEnabled = checked }
+        btnSubmitRecoveryCode.setOnClickListener { onSubmitRecoveryCodeClicked() }
         btnClaimDevice.setOnClickListener { onClaimClicked() }
     }
 
@@ -72,23 +98,20 @@ class PairDeviceActivity : AppCompatActivity() {
         setLoading(true)
         lifecycleScope.launch {
             try {
-                val result = try {
-                    NexTelisApiClient.api.registerUser(
-                        UserCreateRequest(email = email, display_name = displayName)
-                    )
-                } catch (e: HttpException) {
-                    // 409 = this email is already registered — most commonly
-                    // the app was reinstalled and lost its local session, but
-                    // the backend user still exists. Re-pair instead of failing.
-                    // See backend/api/v1/routes/users.py's /claim-code endpoint.
-                    if (e.code() == 409) {
-                        NexTelisApiClient.api.reissueClaimCode(ClaimCodeRequest(email = email))
-                    } else {
-                        throw e
-                    }
+                val result = NexTelisApiClient.api.registerUser(
+                    UserCreateRequest(email = email, display_name = displayName)
+                )
+                recoveryCode = result.recovery_code
+                showRecoveryCodeStep(result)
+            } catch (e: HttpException) {
+                if (e.code() == 409) {
+                    // Already registered — this device must prove ownership
+                    // with the recovery code before we'll reissue a claim code.
+                    pendingReissueEmail = email
+                    showRecoveryInputStep()
+                } else {
+                    showError(describeNetworkError(e))
                 }
-                registration = result
-                showClaimStep(result)
             } catch (e: Exception) {
                 showError(describeNetworkError(e))
             } finally {
@@ -97,8 +120,52 @@ class PairDeviceActivity : AppCompatActivity() {
         }
     }
 
+    private fun onSubmitRecoveryCodeClicked() {
+        val email = pendingReissueEmail ?: return
+        val enteredCode = inputRecoveryCode.text?.toString()?.trim().orEmpty()
+
+        if (enteredCode.isEmpty()) {
+            showError("Enter your recovery code to continue.")
+            return
+        }
+
+        clearError()
+        setLoading(true)
+        lifecycleScope.launch {
+            try {
+                val result = NexTelisApiClient.api.reissueClaimCode(
+                    ClaimCodeRequest(email = email, recovery_code = enteredCode)
+                )
+                sectionRecoveryInput.visibility = LinearLayout.GONE
+                showClaimStep(result.claim_code, result.claim_code_expires_at)
+            } catch (e: Exception) {
+                showError(describeNetworkError(e))
+            } finally {
+                setLoading(false)
+            }
+        }
+    }
+
+    private fun copyRecoveryCode() {
+        val code = recoveryCode ?: return
+        val clipboard = getSystemService(ClipboardManager::class.java)
+        clipboard.setPrimaryClip(ClipData.newPlainText("NexTelis recovery code", code))
+    }
+
+    private fun showRecoveryCodeStep(result: UserRegisteredResponse) {
+        sectionRecoveryCode.visibility = LinearLayout.VISIBLE
+        textRecoveryCode.text = result.recovery_code
+        checkRecoverySaved.isChecked = false
+        showClaimStep(result.claim_code, result.claim_code_expires_at)
+        btnClaimDevice.isEnabled = false
+    }
+
+    private fun showRecoveryInputStep() {
+        sectionRecoveryInput.visibility = LinearLayout.VISIBLE
+    }
+
     private fun onClaimClicked() {
-        val claimCode = registration?.claim_code ?: return
+        val claimCode = claimCode ?: return
         val displayName = inputDisplayName.text?.toString()?.trim().orEmpty()
 
         clearError()
@@ -126,10 +193,11 @@ class PairDeviceActivity : AppCompatActivity() {
         }
     }
 
-    private fun showClaimStep(result: UserWithClaimCode) {
+    private fun showClaimStep(code: String, expiresAt: String) {
+        claimCode = code
         sectionClaim.visibility = LinearLayout.VISIBLE
-        textClaimCode.text = result.claim_code
-        textClaimExpiry.text = getString(R.string.claim_code_expiry, formatExpiry(result.claim_code_expires_at))
+        textClaimCode.text = code
+        textClaimExpiry.text = getString(R.string.claim_code_expiry, formatExpiry(expiresAt))
     }
 
     private fun formatExpiry(isoTimestamp: String): String {

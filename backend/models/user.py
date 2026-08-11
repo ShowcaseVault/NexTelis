@@ -19,6 +19,7 @@ class User(CommonModel):
     )
     display_name: Mapped[str] = mapped_column(String(100), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    hashed_recovery_code: Mapped[str] = mapped_column(String(64), nullable=False)
 
     number: Mapped["Number | None"] = relationship(
         back_populates="user",

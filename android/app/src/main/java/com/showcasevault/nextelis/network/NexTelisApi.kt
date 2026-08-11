@@ -15,7 +15,8 @@ data class UserCreateRequest(
 
 @JsonClass(generateAdapter = true)
 data class ClaimCodeRequest(
-    val email: String
+    val email: String,
+    val recovery_code: String
 )
 
 @JsonClass(generateAdapter = true)
@@ -32,6 +33,14 @@ data class UserWithClaimCode(
     val user: UserRead,
     val claim_code: String,
     val claim_code_expires_at: String
+)
+
+@JsonClass(generateAdapter = true)
+data class UserRegisteredResponse(
+    val user: UserRead,
+    val claim_code: String,
+    val claim_code_expires_at: String,
+    val recovery_code: String
 )
 
 @JsonClass(generateAdapter = true)
@@ -76,7 +85,7 @@ data class NumberLookupResult(
 interface NexTelisApi {
 
     @POST("api/v1/users")
-    suspend fun registerUser(@Body body: UserCreateRequest): UserWithClaimCode
+    suspend fun registerUser(@Body body: UserCreateRequest): UserRegisteredResponse
 
     @POST("api/v1/users/claim-code")
     suspend fun reissueClaimCode(@Body body: ClaimCodeRequest): UserWithClaimCode

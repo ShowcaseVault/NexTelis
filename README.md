@@ -39,28 +39,38 @@ nextelis/
 * **asterisk/** — Asterisk is the telephony engine: SIP registration, call
   routing, and RTP media. Configured with PJSIP realtime, reading endpoints
   straight from the backend's Postgres database.
-* **docs/** — Start with [PROJECT.md](docs/PROJECT.md) for the why,
-  [ARCHITECTURE.md](docs/ARCHITECTURE.md) for the how,
-  [ROADMAP.md](docs/ROADMAP.md) for what's next, and
+* **docs/** — Start with [NEXTELIS-V1.md](docs/NEXTELIS-V1.md) for what the
+  current system actually is and does. Then [PROJECT.md](docs/PROJECT.md) for
+  the why, [ARCHITECTURE.md](docs/ARCHITECTURE.md) for the how,
+  [ROADMAP.md](docs/ROADMAP.md) for what's next,
   [FINDINGS.md](docs/FINDINGS.md) for what we've actually tested and learned
-  on real devices (including OEM/Android-version quirks).
+  on real devices (including OEM/Android-version quirks), and
+  [ASTERISK.md](docs/ASTERISK.md) for the telephony config.
 
 ## Status
 
-Early/experimental (Pilot v0). Verified so far:
+**v1 — Private Telephony MVP, delivered.** A person can register, receive a
+NexTelis number, pair their Android device, and place and receive real voice
+calls with another NexTelis user through the native Android dialer.
+
+Verified on real hardware:
 
 * Two-way SIP calling between real Android devices through a local Asterisk
   instance (PJSIP realtime, Postgres-backed).
 * Android Telecom integration on stock-ish ROMs (Samsung One UI) — NexTelis
   shows up as a calling account alongside the SIM, toggled from system
-  Settings, without disrupting the real SIM service. Heavily customized ROMs
-  (e.g. OxygenOS) can hide this UI entirely — see FINDINGS.md.
-* Full app onboarding flow: register → pair device → grant permissions → get
-  assigned a number → home screen with a one-tap enable/disable toggle.
+  Settings, without disrupting the real SIM service.
+* Full onboarding: register → save recovery code → pair device → grant
+  permissions → get assigned a number → home screen with a one-tap
+  enable/disable toggle.
+* Device tokens and account recovery codes stored only as SHA-256 hashes and
+  shown exactly once; re-pairing a device requires the recovery code.
 
-Not yet hardened: authentication/security is intentionally minimal for the
-pilot stage (see FINDINGS.md for the specific tradeoffs accepted and what
-must change before any real launch).
+**Known limitations** (deliberate — v1 is an MVP, not a launch): OnePlus/
+OxygenOS is unsupported, there is no TLS on either the control or media plane,
+deployment is single-host, and calling is verified only on a shared LAN. See
+[docs/NEXTELIS-V1.md](docs/NEXTELIS-V1.md) §7 for the full list and
+[docs/ROADMAP.md](docs/ROADMAP.md) for which version addresses each.
 
 ## Running it
 

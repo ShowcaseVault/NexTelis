@@ -161,11 +161,38 @@ no path to recover the pairing.
 the existing user), and the Android app now falls back to it automatically
 when registration 409s.
 
-**Pilot-stage security tradeoff, accepted deliberately:** this endpoint has
-no password or email verification — knowing a registered email is
-sufficient to mint a new claim code and pair a device to that account. This
-is acceptable for Pilot v0 (no real users, no production security
-requirements per `docs/ROADMAP.md`) but is a real account-takeover vector
-and **must be revisited before v3 (Security)** — e.g. requiring a
-confirmation link sent to the email, or requiring proof from an existing
-paired device when one exists.
+### Follow-up: email alone was an account-takeover vector — closed in v1
+
+The first version of `POST /users/claim-code` had no password or email
+verification: knowing a registered email address was sufficient to mint a
+claim code and pair an attacker's device to that account. This was initially
+accepted as a pilot-stage tradeoff, but it was closed before declaring v1 —
+shipping a "service" with a trivial takeover path would have misrepresented
+what v1 is.
+
+**Options considered:**
+
+* *Email confirmation link* — rejected: NexTelis has no email-delivery
+  infrastructure, and adding one is a disproportionate dependency at this stage.
+* *Require proof from an existing paired device* — rejected: it breaks the
+  exact case the re-pair flow exists for ("I lost my only phone").
+* *One-time recovery code issued at registration* — **chosen.** Self-contained,
+  no new infrastructure, and it survives losing every paired device.
+
+**Fix applied:**
+
+* `POST /users` now generates a recovery code (`secrets.token_urlsafe(24)`),
+  stores only its SHA-256 hash on the user, and returns the plaintext exactly
+  once in the registration response.
+* `POST /users/claim-code` requires `{email, recovery_code}` and returns `400`
+  on mismatch. Email alone no longer proves anything.
+* The Android pairing screen displays the code with a copy button and gates
+  the "Pair this device" button behind an "I've saved my recovery code"
+  checkbox, and prompts for the code when registration returns `409`.
+* Migration `a1b2c3d4e5f6` backfills pre-existing rows with a fresh
+  (undisclosed) code — those are seeded test users, so no real user is
+  stranded; a real affected account would need an admin-issued code.
+
+**Residual limitation:** a lost recovery code means a lost account, with no
+self-service reset. Acceptable at this scale; a proper account-recovery story
+belongs to v3 (Security).

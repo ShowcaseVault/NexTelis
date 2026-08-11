@@ -1,410 +1,124 @@
 # NexTelis — Development Roadmap
 
-> **Project status:** Pilot v0
+> **Project status:** v1 delivered — Private Telephony MVP
+> **Next:** v2 — Native Android Integration
 > **Purpose:** Experimental private Internet telephony using existing Android devices, Asterisk, and Android Telecom APIs.
 
 ---
 
 ## Version Philosophy
 
-NexTelis will be developed incrementally.
-
-Each version should answer a specific technical question and produce a working milestone.
-
-We do **not** implement future complexity before the current version is proven.
+NexTelis is developed incrementally. Each version answers a specific technical
+question and produces a working milestone. We do **not** implement future
+complexity before the current version is proven.
 
 ```text
-Experiment
-    ↓
-Working prototype
-    ↓
-Understand limitations
-    ↓
-Document result
-    ↓
-Next version
+Experiment → Working prototype → Understand limitations → Document → Next version
 ```
+
+Findings from each version live in [FINDINGS.md](FINDINGS.md). The delivered
+v1 system is documented in [NEXTELIS-V1.md](NEXTELIS-V1.md).
 
 ---
 
-# Pilot v0 — Feasibility & Foundation
+# ✅ Pilot v0 — Feasibility & Foundation (complete)
 
-### Objective
+**Question:** Is the NexTelis concept technically feasible with existing
+hardware — no SIM, no cellular hardware, no SDR, no private LTE/5G?
 
-Determine whether the basic NexTelis concept is technically feasible using existing hardware and software.
+**Answer: yes, with device-dependent caveats.**
 
-### Constraints
+| Version | Goal | Result |
+|---|---|---|
+| v0.1 | Project foundation | Repository, architecture, terminology, docs |
+| v0.2 | Asterisk foundation | Working local Asterisk (Docker, PJSIP) |
+| v0.3 | First telephone call | Real voice call `7001 → 7002` between two physical phones over Wi-Fi |
+| v0.4 | Understand the stack | Documented SIP/RTP/PJSIP/codec/NAT call path |
+| v0.5 | Android Telecom feasibility | `PhoneAccount`/`ConnectionService` proof-of-concept |
 
-* Existing Linux PC/server
-* Existing Android phones
-* Wi-Fi / existing IP connectivity
-* No SIM
-* No cellular hardware
-* No SDR
-* No private LTE/5G
-* No Open5GS requirement
-* No production security requirements yet
-
-### Work
-
-#### v0.1 — Project Foundation
-
-* Create repository
-* Create basic project structure
-* Create documentation
-* Define architecture
-* Define terminology
-* Record technical decisions
-
-**Deliverable:**
-
-```text
-NexTelis repository
-+
-project documentation
-```
+**Key limitation discovered:** Android Telecom integration is **OEM-dependent**,
+not just Android-version-dependent. Stock-like ROMs (Samsung One UI) expose the
+calling-accounts toggle and work end-to-end; heavily customized ROMs
+(OxygenOS/ColorOS) can remove that UI entirely, with no third-party workaround.
+See [FINDINGS.md](FINDINGS.md).
 
 ---
 
-#### v0.2 — Asterisk Foundation
+# ✅ v1 — NexTelis Private Telephony MVP (complete)
 
-Set up Asterisk locally.
+**Question:** Can the experiment become an actual minimal service?
 
-Preferred environment:
+**Target — a person can:**
 
-```text
-Linux
-  ↓
-Docker
-  ↓
-Asterisk
-```
+1. ✅ Register
+2. ✅ Receive a NexTelis number
+3. ✅ Register their Android device
+4. ✅ Call another NexTelis user
+5. ✅ Receive a call from another NexTelis user
 
-Learn:
+**Delivered:**
 
-* SIP
-* RTP
-* PJSIP
-* Extensions
-* Dialplan
-* Channels
-* Bridges
-* Basic call routing
+* **Backend** (FastAPI + Postgres) — user registration, number assignment,
+  device registration/auth, call authorization, CDR table, PJSIP realtime
+  provisioning read directly by Asterisk.
+* **Android app** — runtime server configuration (no hardcoded IP), full
+  onboarding flow, Telecom `PhoneAccount` registration, real SIP/RTP calling
+  via the Linphone SDK, backend-backed caller-ID resolution.
+* **Security hardening** — device tokens and account recovery codes are stored
+  only as SHA-256 hashes and shown exactly once. Re-pairing a device requires
+  the recovery code, closing the email-only account-takeover vector found
+  during v0.
 
-**Deliverable:**
+**Full detail — what was built, what was verified, and what is explicitly not
+done: [NEXTELIS-V1.md](NEXTELIS-V1.md).**
 
-A working local Asterisk server.
-
----
-
-#### v0.3 — First Telephone Call
-
-Create two test endpoints:
-
-```text
-7001
-7002
-```
-
-Connect two Android phones over Wi-Fi.
-
-Target:
-
-```text
-Phone A
-  ↓
-Wi-Fi
-  ↓
-Asterisk
-  ↓
-Wi-Fi
-  ↓
-Phone B
-```
-
-Make:
-
-```text
-7001 → 7002
-```
-
-work.
-
-**Deliverable:**
-
-A real voice call between two physical phones through our server.
+**Carried into later versions:** OnePlus/OxygenOS unsupported (no fix
+available), no TLS on control or media plane (v3), single-host deployment (v5),
+LAN-only verification (v4), Linphone AGPLv3 licensing decision pending before
+any closed-source launch.
 
 ---
 
-#### v0.4 — Understand the Telephony Stack
+# ▶ v2 — Native Android Integration (next)
 
-Document what actually happened.
-
-Study:
-
-```text
-SIP
-RTP
-PJSIP
-Codecs
-Call setup
-Call teardown
-NAT
-Ports
-Latency
-Jitter
-```
-
-Trace:
+**Objective:** Make NexTelis feel like a native phone service rather than a
+VoIP app.
 
 ```text
-CALL REQUEST
-     ↓
-SIP
-     ↓
-Asterisk
-     ↓
-SIP
-     ↓
-REMOTE PHONE
-     ↓
-RTP
-     ↓
-VOICE
+Android Contacts → Android Dialer → Android Telecom → NexTelis → Asterisk
 ```
 
-**Deliverable:**
+Investigate and support:
 
-A documented understanding of our basic telephony path.
-
----
-
-#### v0.5 — Android Telecom Feasibility
-
-Investigate the Android side.
-
-Study and prototype:
-
-```text
-TelecomManager
-PhoneAccount
-ConnectionService
-```
-
-Determine whether NexTelis can:
-
-* Register as a calling provider
-* Receive calls from the native dialer
-* Initiate calls from the native dialer
-* Use custom/private numbers
-* Integrate with native call UI
-* Integrate with native call history
-* Work with Android Contacts
-* Handle incoming calls
-
-**Deliverable:**
-
-A small Android Telecom proof-of-concept.
-
----
-
-### Pilot v0 Exit Criteria
-
-Pilot v0 is successful if we can demonstrate:
-
-```text
-Android native telephony
-        ↓
-NexTelis service
-        ↓
-Asterisk
-        ↓
-Internet/Wi-Fi
-        ↓
-Another Android device
-```
-
-AND we understand exactly what Android allows and prevents us from doing.
-
----
-
-# v1 — NexTelis Private Telephony MVP
-
-### Objective
-
-Turn the experiment into an actual minimal NexTelis service.
-
-### Features
-
-#### Users
-
-```text
-User
- └── NexTelis account
-```
-
-#### Private Numbers
-
-Example:
-
-```text
-7001
-7002
-7003
-```
-
-Each number belongs to a NexTelis user.
-
-#### Devices
-
-Associate:
-
-```text
-User
-  ↓
-Android device
-  ↓
-NexTelis service
-```
-
-#### Calling
-
-```text
-User A
-  ↓
-7002
-  ↓
-NexTelis
-  ↓
-Asterisk
-  ↓
-User B
-```
-
-#### Backend
-
-Introduce the first real backend.
-
-Responsibilities:
-
-* User registration
-* Number assignment
-* Device registration
-* Call authorization
-* Basic call state
-* Basic call records
-
-### v1 Target
-
-A person can:
-
-1. Register
-2. Receive a NexTelis number
-3. Register their Android device
-4. Call another NexTelis user
-5. Receive a call from another NexTelis user
-
----
-
-# v2 — Native Android Integration
-
-### Objective
-
-Make NexTelis feel like a native phone service.
-
-Focus heavily on Android Telecom.
-
-Target experience:
-
-```text
-Android Contacts
-       ↓
-Android Dialer
-       ↓
-Android Telecom
-       ↓
-NexTelis
-       ↓
-Asterisk
-```
-
-Investigate/support:
-
-* Native outgoing calls
-* Native incoming calls
-* Native call UI
-* Native call history
+* Native call history integration (verify Asterisk CDR writing end-to-end first)
 * Contacts integration
 * Call notifications
-* Multiple phone accounts
-* Device/account state
+* Multiple phone accounts / account state
+* Polishing native incoming and in-call UI
 
-### Goal
-
-The user should not need to think:
-
-> "I'm using a VoIP application."
-
-It should feel as close as Android permits to using another telephone service.
+**Goal:** the user should never need to think *"I'm using a VoIP application."*
 
 ---
 
 # v3 — Privacy & Security
 
-### Objective
+**Objective:** Move from functional prototype toward a trustworthy system.
+Security architecture designed deliberately, not added piecemeal.
 
-Move from functional prototype toward a trustworthy communication system.
-
-Implement:
-
-* Strong authentication
-* Device authentication
-* Secure credential handling
-* TLS
-* Secure SIP configuration
-* Secure media where appropriate
-* Key management
-* Authorization
-* Account protection
-* Abuse prevention
-* Secure backend APIs
-
-Security architecture should be designed deliberately rather than added randomly.
+* TLS on the control plane; SIP over TLS; SRTP for media
+* Strong user and device authentication; key management
+* Secure credential handling and authorization
+* Account protection, rate limiting, abuse prevention
 
 ---
 
 # v4 — Reliability & Network Engineering
 
-### Objective
+**Objective:** Calls that work outside a simple local Wi-Fi environment.
 
-Make calls reliable outside a simple local Wi-Fi environment.
-
-Investigate:
-
-* NAT traversal
-* STUN
-* TURN
-* SIP NAT behavior
-* RTP routing
-* Network changes
-* Wi-Fi → mobile data transitions
-* Packet loss
-* Jitter
-* Latency
-* Reconnection
-* Call quality monitoring
-
-Target:
-
-```text
-Wi-Fi
-   │
-   ├──→ NexTelis
-   │
-4G/5G
-   │
-   └──→ NexTelis
-```
+* NAT traversal — STUN, TURN, SIP NAT behavior, RTP routing
+* Network transitions (Wi-Fi ↔ 4G/5G), reconnection
+* Packet loss, jitter, latency, call-quality monitoring
 
 The transport should become transparent to the user.
 
@@ -412,180 +126,70 @@ The transport should become transparent to the user.
 
 # v5 — Service Architecture
 
-### Objective
-
-Move from a single-machine prototype toward a scalable service.
-
-Potential components:
+**Objective:** Move from a single-machine prototype toward a scalable service.
+**Only necessary if the project grows.**
 
 ```text
-                 Load Balancer
-                      │
-              ┌───────┴───────┐
-              ▼               ▼
-          Backend A       Backend B
-              │               │
-              └───────┬───────┘
-                      │
-                 Telephony
-                   Layer
-                      │
-              ┌───────┴───────┐
-              ▼               ▼
-          Asterisk A       Asterisk B
+Load Balancer → Backend A/B → Telephony Layer → Asterisk A/B
 ```
 
-Potential work:
-
-* Persistent database
-* Service separation
-* Monitoring
-* Logging
-* Metrics
-* Backups
-* High availability
-* Multiple telephony nodes
-
-This is only necessary if the project grows.
+Service separation, monitoring, logging, metrics, backups, high availability,
+multiple telephony nodes.
 
 ---
 
 # v6 — Advanced Telecom Research
 
-Only after the Internet-based system is working well.
+Only after the Internet-based system works well. **Not part of the MVP.**
 
-Investigate:
-
-### Open5GS
-
-```text
-Android
-   ↓
-LTE/5G RAN
-   ↓
-Open5GS
-   ↓
-NexTelis
-```
-
-### Private LTE/5G
-
-Study:
-
-* EPC
-* 5G Core
-* RAN
-* eNodeB
-* gNodeB
-* Subscriber management
-* SIM/eSIM
-* Spectrum/regulatory requirements
-
-### Hardware
-
-Potential future research:
-
-* SDR
-* Cellular RAN hardware
-* Test networks
-
-This is **not part of the current MVP**.
+* **Open5GS / private LTE/5G** — EPC, 5G core, RAN, eNodeB/gNodeB, subscriber
+  management, SIM/eSIM, spectrum and regulatory requirements
+* **Hardware** — SDR, cellular RAN hardware, test networks
 
 ---
 
 # Future / Experimental Branches
 
-These are possibilities, not committed roadmap versions.
+Possibilities, not committed roadmap versions.
 
-## Alternative Transport
-
-Investigate whether NexTelis could eventually work over:
-
-```text
-Wi-Fi
-4G
-5G
-Satellite
-Mesh
-Local device-to-device networks
-```
-
-The goal would be to separate:
-
-```text
-NexTelis service
-        +
-Transport network
-```
-
----
-
-## Mesh Communication
-
-Possible future research:
-
-```text
-Phone A
-   ↓
-Phone B
-   ↓
-Phone C
-   ↓
-Internet Gateway
-   ↓
-NexTelis
-```
-
-This would require significant additional research and potentially hardware/software constraints.
-
-Not part of the MVP.
+* **Alternative transport** — separating the NexTelis service from the
+  transport network entirely (Wi-Fi, 4G, 5G, satellite, mesh, device-to-device)
+* **Mesh communication** — phone-to-phone relay to an Internet gateway. Would
+  require significant additional research and possibly dedicated hardware.
 
 ---
 
 # Version Summary
 
-| Version      | Purpose           | Main Result                         |
-| ------------ | ----------------- | ----------------------------------- |
-| **Pilot v0** | Feasibility       | Prove the concept                   |
-| **v0.1**     | Foundation        | Repository + docs                   |
-| **v0.2**     | Asterisk          | Local telephony core                |
-| **v0.3**     | First call        | Phone → Asterisk → Phone            |
-| **v0.4**     | Understanding     | SIP/RTP/network knowledge           |
-| **v0.5**     | Android Telecom   | Native integration feasibility      |
-| **v1**       | MVP               | Private numbers + calling           |
-| **v2**       | Native experience | Android dialer/contacts integration |
-| **v3**       | Security          | Privacy + authentication            |
-| **v4**       | Reliability       | Real-world networks                 |
-| **v5**       | Scale             | Production-style architecture       |
-| **v6**       | Cellular research | Open5GS/private LTE/5G              |
+| Version | Purpose | Result | Status |
+|---|---|---|---|
+| **Pilot v0** | Feasibility | Concept proven; OEM limits understood | ✅ Complete |
+| **v1** | MVP | Private numbers + real calling service | ✅ Complete |
+| **v2** | Native experience | Dialer / contacts / call-history integration | ▶ Next |
+| **v3** | Security | TLS, SIP-TLS, SRTP, authentication, abuse prevention | Planned |
+| **v4** | Reliability | NAT traversal, real-world networks | Planned |
+| **v5** | Scale | Production-style architecture | If needed |
+| **v6** | Cellular research | Open5GS / private LTE/5G | Research |
 
 ---
 
 # Current Position
 
 ```text
-                NEX TELIS
+                    NEXTELIS
 
-                    │
-                    ▼
-             ┌─────────────┐
-             │  PILOT v0  │
-             └──────┬──────┘
-                    │
-       ┌────────────┼────────────┐
-       ▼            ▼            ▼
-   Asterisk      Android      Architecture
-     v0.2        Telecom        v0.1
-       │            │
-       ▼            ▼
-  First call     Feasibility
-     v0.3          v0.5
-       │            │
-       └──────┬─────┘
-              ▼
-          NexTelis v1
-              │
-              ▼
-       Private Telephony
-             MVP
+              ┌──────────────┐
+              │   PILOT v0   │   feasibility proven
+              └──────┬───────┘
+                     │
+              ┌──────▼───────┐
+              │      v1      │   ◀── you are here
+              │ Private      │       MVP delivered
+              │ Telephony    │
+              │ MVP          │
+              └──────┬───────┘
+                     │
+              ┌──────▼───────┐
+              │      v2      │   native Android integration
+              └──────────────┘
 ```

@@ -1,8 +1,10 @@
 # NexTelis — Architecture
 
-> **Version:** Pilot v0.1
-> **Status:** Initial architecture
-> **Purpose:** Define the minimum architecture for the NexTelis telephony experiment.
+> **Version:** v1
+> **Status:** Implemented as described — see [NEXTELIS-V1.md](NEXTELIS-V1.md)
+> for the concrete v1 system (routes, data model, Android components) built on
+> top of this architecture.
+> **Purpose:** Define the minimum architecture for the NexTelis telephony system.
 
 ---
 
@@ -126,9 +128,11 @@ NexTelis ConnectionService
 NexTelis
 ```
 
-This is one of the most important technical areas of Pilot v0.
-
-We must determine experimentally what Android permits.
+This was the most important open technical area of Pilot v0. It is now
+implemented (`NexTelisConnectionService` drives a Linphone SIP core), and what
+Android permits is documented in [FINDINGS.md](FINDINGS.md) — notably that
+enabling the `PhoneAccount` requires user action in system Settings, and that
+some OEM ROMs remove that UI entirely.
 
 ---
 
