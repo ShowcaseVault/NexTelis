@@ -17,3 +17,7 @@ local.properties
 # Add these two missing ones
 .kotlin/
 app/build/
+# Release signing — never commit the keystore or its passwords
+*.jks
+*.keystore
+keystore.properties

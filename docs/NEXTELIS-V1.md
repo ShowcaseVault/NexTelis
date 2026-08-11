@@ -193,10 +193,11 @@ backend. No HA, no load balancing, no monitoring. v5.
 **Local-network scope.** Calls have been verified on a shared Wi-Fi network.
 NAT traversal, STUN/TURN, and Wi-Fi↔mobile-data handoff are untouched. v4.
 
-**Release APK is debug-signed.** The v1 build is produced by
-`scripts/build-release.sh` via `assembleDebug`. A proper release keystore and
-`signingConfigs` block are not yet set up, so there is no Play-Store-ready
-signed artifact.
+**Distribution is sideload-only.** The release APK is properly signed (v2
+scheme, RSA-4096, valid to 2053), but NexTelis is not on Google Play and has
+no update mechanism — installing a new version means sideloading it. The
+signing key is a self-managed local keystore; if it is ever lost, existing
+installs cannot be upgraded in place.
 
 ---
 
@@ -213,9 +214,18 @@ uvicorn backend.main:app --host 0.0.0.0 --port 8000
 **Android:**
 
 ```bash
-bash scripts/build-release.sh   # builds, copies to releases/ and ~/Downloads,
-                                # adb-pushes to the connected device
+bash scripts/build-release.sh             # debug build, for testing
+bash scripts/build-release.sh --release   # signed release build
 ```
+
+Both copy the APK to `releases/` and adb-push it to a connected device.
+
+Release builds need `android/keystore.properties` (gitignored), holding
+`storeFile`, `storePassword`, `keyAlias`, and `keyPassword`. The keystore
+itself is also gitignored. **Both are unrecoverable if lost** — without them
+no future build can upgrade an existing install, so back them up somewhere
+outside the repo. Note that PKCS12 keystores do not support a key password
+distinct from the store password.
 
 On first launch the app asks for the backend host/port. Both phone and server
 must be reachable from each other — typically the same Wi-Fi network.
