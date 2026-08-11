@@ -24,8 +24,9 @@ class NumberService:
         if user is None:
             raise NotFoundError(f"user {user_id} not found")
 
-        if await self.number_repository.get_by_user_id(user_id) is not None:
-            raise ConflictError(f"user {user_id} already has a number assigned")
+        existing = await self.number_repository.get_by_user_id(user_id)
+        if existing is not None:
+            return existing
 
         value = await self.number_repository.generate_unique_value()
 
