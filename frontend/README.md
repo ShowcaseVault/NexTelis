@@ -34,7 +34,20 @@ containerized mode nginx reaches the backend by service name on the compose
 network; in dev mode Vite proxies to `localhost:8000` instead
 (`vite.config.ts`), so `/api` behaves identically either way.
 
-## Pages
+## Two deployments
+
+The same bundle ships to two places, differing only in base path:
+
+| Where | Base | Serves | `/api` |
+| --- | --- | --- | --- |
+| GitHub Pages | `/NexTelis/` | Docs only | Not available |
+| nginx (`compose.yaml`) | `/` | Docs + reverse proxy | → `backend:8000` |
+
+Pages is static hosting, so it cannot proxy anything — the published site is
+documentation, not a working client. `.github/workflows/pages.yml` sets
+`BASE_PATH` at build time; every other build keeps the default `/`.
+
+## Pages (routes)
 
 Two routes, hash-based so no router dependency is needed:
 
