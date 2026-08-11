@@ -29,7 +29,13 @@ object PhoneAccountManager {
         // once registered, or every HomeActivity recreation (e.g. returning
         // from the Calling Accounts Settings screen) would immediately
         // undo the toggle the user just flipped on.
-        if (isRegistered(context)) return
+        //
+        // Exception: an account registered by an older build may be missing
+        // properties we now depend on (notably supported URI schemes, whose
+        // absence stops Telecom routing dialer calls to us at all). Those
+        // must be re-registered once, at the cost of the user re-enabling.
+        val existing = readPhoneAccount(context)
+        if (existing != null && existing.supportedUriSchemes.isNotEmpty()) return
 
         val handle = getHandle(context)
         // CAPABILITY_CALL_PROVIDER (not SELF_MANAGED): self-managed apps
@@ -38,11 +44,20 @@ object PhoneAccountManager {
         // UI instead. Native-dialer-initiated calling is the whole point of
         // this project (docs/PROJECT.md §2), so we stay call-provider even
         // though NexTelis drives its own SIP/RTP rather than a modem/SIM.
+        // Telecom only routes a call to an account whose supported schemes
+        // match the dialed address. Without this list the account registers
+        // and shows up in Settings, but the native dialer never actually
+        // hands us a call — TEL is what the dialpad produces, SIP is what
+        // our own SIP URIs use.
+        val schemes = listOf(PhoneAccount.SCHEME_TEL, PhoneAccount.SCHEME_SIP)
+
         val account = PhoneAccount.builder(handle, ACCOUNT_LABEL)
             .setCapabilities(
                 PhoneAccount.CAPABILITY_CALL_PROVIDER or
                         PhoneAccount.CAPABILITY_PLACE_EMERGENCY_CALLS
             )
+            .setSupportedUriSchemes(schemes)
+            .setShortDescription(ACCOUNT_LABEL)
             .build()
 
         telecomManager(context).registerPhoneAccount(account)

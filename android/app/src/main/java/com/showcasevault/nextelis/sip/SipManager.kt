@@ -113,8 +113,11 @@ object SipManager {
         ) {
             Log.d(TAG, "Call state: $cstate ($message)")
             when (cstate) {
+                // Bare user part only ("7002"), not the full "sip:7002@host"
+                // URI — callers build their own SIP/tel URIs from this, and
+                // the NexTelis directory lookup keys on the number alone.
                 Call.State.IncomingReceived ->
-                    listener?.onIncomingCall(call.remoteAddress.asStringUriOnly())
+                    listener?.onIncomingCall(call.remoteAddress.username.orEmpty())
                 Call.State.OutgoingInit, Call.State.OutgoingProgress, Call.State.OutgoingRinging ->
                     listener?.onCallStateChanged(SipCallState.RINGING_OUTGOING)
                 Call.State.Connected, Call.State.StreamsRunning ->

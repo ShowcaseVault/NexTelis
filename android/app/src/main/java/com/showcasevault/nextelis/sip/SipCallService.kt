@@ -37,6 +37,10 @@ class SipCallService : Service() {
 
         if (number != null && sipPassword != null) {
             startForeground(NOTIFICATION_ID, buildNotification(number))
+            // Must be installed before/with the registration: an inbound
+            // INVITE can arrive the moment we're registered, and without a
+            // listener it would be silently dropped.
+            SipCallRouter.install(this)
             SipManager.start(this, number, sipPassword)
         } else {
             stopSelf()

@@ -4,18 +4,20 @@ import android.net.Uri
 import android.telecom.Connection
 import android.telecom.ConnectionRequest
 import android.telecom.ConnectionService
+import android.telecom.DisconnectCause
+import android.telecom.PhoneAccount
 import android.telecom.PhoneAccountHandle
 import android.telecom.TelecomManager
 import android.util.Log
-import com.showcasevault.nextelis.account.PhoneAccountManager
 import com.showcasevault.nextelis.network.NexTelisApiClient
-import com.showcasevault.nextelis.sip.SipCallListener
+import com.showcasevault.nextelis.sip.CallStateBus
 import com.showcasevault.nextelis.sip.SipCallState
 import com.showcasevault.nextelis.sip.SipManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class NexTelisConnectionService : ConnectionService() {
 
@@ -32,52 +34,49 @@ class NexTelisConnectionService : ConnectionService() {
 
     override fun onCreate() {
         super.onCreate()
-        // One listener for the process lifetime — SipManager is a
-        // singleton, so re-registering per-Service-instance would leak.
-        SipManager.setCallListener(object : SipCallListener {
-            override fun onIncomingCall(remoteAddress: String) {
-                reportIncomingCall(remoteAddress)
-            }
-
-            override fun onCallStateChanged(state: SipCallState) {
-                when (state) {
-                    SipCallState.CONNECTED -> activeConnection?.setActive()
-                    SipCallState.ENDED -> {
-                        activeConnection?.setDisconnected(
-                            android.telecom.DisconnectCause(android.telecom.DisconnectCause.REMOTE)
-                        )
-                        activeConnection?.destroy()
-                        activeConnection = null
-                    }
-                    SipCallState.RINGING_OUTGOING -> activeConnection?.setDialing()
-                    SipCallState.RINGING_INCOMING -> Unit
-                }
-            }
-        })
+        // Note: the SipManager listener itself is installed by SipCallRouter
+        // (from SipCallService), not here — this service doesn't exist until
+        // Telecom already has a call, which is too late to catch an inbound
+        // INVITE. We only observe state for the call currently in progress.
+        CallStateBus.setObserver { state -> onSipStateChanged(state) }
     }
 
-    private fun reportIncomingCall(remoteAddress: String) {
-        val telecomManager = getSystemService(TelecomManager::class.java)
-        val handle = PhoneAccountManager.getHandle(this)
-        val extras = android.os.Bundle().apply {
-            putParcelable(
-                TelecomManager.EXTRA_INCOMING_CALL_ADDRESS,
-                Uri.fromParts(android.telecom.PhoneAccount.SCHEME_SIP, remoteAddress, null)
-            )
+    override fun onDestroy() {
+        CallStateBus.setObserver(null)
+        super.onDestroy()
+    }
+
+    private fun onSipStateChanged(state: SipCallState) {
+        val connection = activeConnection ?: return
+        when (state) {
+            SipCallState.CONNECTED -> connection.setActive()
+            SipCallState.RINGING_OUTGOING -> connection.setDialing()
+            SipCallState.RINGING_INCOMING -> Unit
+            SipCallState.ENDED -> {
+                connection.setDisconnected(DisconnectCause(DisconnectCause.REMOTE))
+                connection.destroy()
+                activeConnection = null
+            }
         }
-        telecomManager.addNewIncomingCall(handle, extras)
     }
 
     override fun onCreateOutgoingConnection(
         connectionManagerPhoneAccountHandle: PhoneAccountHandle?,
         request: ConnectionRequest
     ): Connection {
-        Log.d(TAG, "Outgoing call → ${request.address}")
         val destination = request.address?.schemeSpecificPart.orEmpty()
+        Log.d(TAG, "Outgoing call → $destination")
+
         SipManager.placeCall(destination)
+
         return NexTelisConnection(isIncoming = false).apply {
+            setAddress(
+                Uri.fromParts(PhoneAccount.SCHEME_SIP, destination, null),
+                TelecomManager.PRESENTATION_ALLOWED
+            )
             setDialing()
             activeConnection = this
+            if (destination.isNotEmpty()) resolveCallerDisplayName(destination, this)
         }
     }
 
@@ -85,19 +84,20 @@ class NexTelisConnectionService : ConnectionService() {
         connectionManagerPhoneAccountHandle: PhoneAccountHandle?,
         request: ConnectionRequest
     ): Connection {
-        Log.d(TAG, "Incoming call ← ${request.address}")
-        val remoteNumber = request.address?.schemeSpecificPart
+        val remoteNumber = request.address?.schemeSpecificPart.orEmpty()
+        Log.d(TAG, "Incoming call ← $remoteNumber")
+
         return NexTelisConnection(isIncoming = true).apply {
+            setAddress(request.address, TelecomManager.PRESENTATION_ALLOWED)
             setRinging()
-            setAddress(request.address, android.telecom.TelecomManager.PRESENTATION_ALLOWED)
             activeConnection = this
-            if (!remoteNumber.isNullOrEmpty()) resolveCallerDisplayName(remoteNumber, this)
+            if (remoteNumber.isNotEmpty()) resolveCallerDisplayName(remoteNumber, this)
         }
     }
 
-    /** Looks up the caller's NexTelis display name so it shows even when the
-     * number isn't saved in the phone's local contacts. Best-effort: leaves
-     * the raw number as the caller ID if the lookup fails or is slow. */
+    /** Looks up the remote party's NexTelis display name so a name shows even
+     * when the number isn't in the phone's local contacts. Best-effort: the
+     * raw number stays as the caller ID if the lookup fails or is slow. */
     private fun resolveCallerDisplayName(number: String, connection: NexTelisConnection) {
         displayNameCache[number]?.let {
             connection.applyCallerDisplayName(it)
@@ -107,7 +107,10 @@ class NexTelisConnectionService : ConnectionService() {
             try {
                 val result = NexTelisApiClient.api.lookupNumber(number)
                 displayNameCache[number] = result.display_name
-                connection.applyCallerDisplayName(result.display_name)
+                // Telecom Connection mutators must run on the main thread.
+                withContext(Dispatchers.Main) {
+                    connection.applyCallerDisplayName(result.display_name)
+                }
             } catch (e: Exception) {
                 Log.d(TAG, "Caller name lookup failed for $number: ${e.message}")
             }

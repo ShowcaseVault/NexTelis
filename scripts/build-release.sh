@@ -40,14 +40,6 @@ mkdir -p "$REPO_ROOT/releases"
 cp "$APK_SRC" "$REPO_ROOT/releases/$APK_NAME"
 echo "Copied to releases/$APK_NAME"
 
-DOWNLOADS_DIR="$HOME/Downloads"
-if [ -d "$DOWNLOADS_DIR" ]; then
-    cp "$APK_SRC" "$DOWNLOADS_DIR/$APK_NAME"
-    echo "Copied to ~/Downloads/$APK_NAME"
-else
-    echo "No ~/Downloads directory found — skipped." >&2
-fi
-
 if command -v adb >/dev/null 2>&1 && adb get-state >/dev/null 2>&1; then
     adb push "$APK_SRC" "/sdcard/Download/$APK_NAME" >/dev/null
     echo "Pushed to device: /sdcard/Download/$APK_NAME"
