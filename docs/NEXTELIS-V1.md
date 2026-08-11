@@ -234,100 +234,80 @@ transitions). See [ROADMAP.md](ROADMAP.md).
 
 ## 10. Summary
 
-> Written as a LinkedIn-style post. Everything below is claimed only where it
-> is actually implemented — see §6 (verified) and §7 (limitations).
+> Written as a LinkedIn-style post.
 
----
+I built a phone network that does not need a phone company.
 
-**I built a phone network that doesn't need a phone company.**
+The idea started with a simple question. Why did we rebuild chat a hundred
+times but never rebuild calling? Text messaging has group chats, threads,
+bots, and plenty of servers you can host yourself. Voice calling has two
+options. Pay a carrier for a number tied to a SIM, or get everyone you know
+to install the same app you use. There is almost nothing in between.
 
-It started with a question I couldn't stop poking at: *why is calling the one
-thing we never got to rebuild?*
+So I built NexTelis. You run the server, you hand out your own numbers, and
+people call each other using the dialer that is already on their phone.
 
-Think about how much of messaging got reinvented. Group chats, threads,
-reactions, bots, self-hosted Matrix and XMPP servers, teams running their own
-Slack alternatives. Text is a solved, open, endlessly remixable space.
+The part I like most is that there is no app to open. NexTelis registers with
+Android as a calling account, the same way your SIM does. Once you turn it on
+in settings, it sits next to your carrier and the normal dialer just offers it
+as another way to place a call. You dial a NexTelis number from the usual
+dialer. The usual incoming call screen rings. Bluetooth, the in call screen,
+the lock screen answer swipe all work, because it is the real system UI and
+not a copy of it. It behaves close enough to a SIM service that you stop
+thinking about it being an internet call.
 
-Now think about voice calls. Your options are basically: your carrier, or a
-walled-garden app. Want to call someone? Either pay a telco for a number tied
-to a SIM, or convince the other person to install the same app you have. There
-is almost nothing in between — and almost nobody self-hosts a phone number the
-way they self-host a chat server.
+It runs as a call provider account rather than a self managed one, which means
+it sits beside your real SIM instead of taking over. Your carrier service keeps
+working the whole time.
 
-So I built **NexTelis**: a private, Internet-based telephony system where you
-run the infrastructure, hand out your own numbers, and call people using the
-phone dialer that's already on the device.
+What is under it:
 
-**The part I'm most pleased with: there's no app to open.**
+The Android app is Kotlin. It uses the Android Telecom APIs for native call
+handling, the Linphone SDK for real SIP and RTP audio, and a foreground service
+so calls survive the app going to the background.
 
-This isn't another calling app with its own contact list and its own in-call
-screen. NexTelis registers with Android as a *calling account* — the same
-mechanism your SIM uses. Once enabled, it sits in Settings › Calling accounts
-right next to your carrier, and the stock dialer simply offers it as another
-way to place a call.
+The backend is FastAPI and Postgres. It handles users, numbers, device pairing,
+and call permission. It never touches audio.
 
-```text
-Native dialer → Android Telecom → NexTelis → Asterisk → the other person
-```
+Asterisk is the call engine. It reads its SIP endpoints straight out of Postgres.
+DTMF is negotiated as RFC 4733, so keypad tones travel in the audio stream the
+proper way instead of being faked.
 
-Dial a NexTelis number from the normal dialer. The native incoming-call screen
-rings for inbound calls. Bluetooth routing, the in-call UI, the lock-screen
-answer swipe — all the system behavior you already know, because it *is* the
-system behavior. It simulates a SIM-backed service closely enough that the user
-doesn't have to think "I'm making a VoIP call." They're just calling someone.
+Control and audio stay on separate paths. Voice never goes through an HTTP
+request. That was the most important design decision in the whole project.
 
-Technically it registers as a `CALL_PROVIDER` phone account rather than a
-self-managed one — meaning it coexists with your real SIM instead of hijacking
-it. Your actual carrier service keeps working, untouched, the whole time.
-
-**What's under it:**
-
-- **Android app in Kotlin** — Telecom `ConnectionService`/`Connection`
-  integration for native call handling, Linphone SDK for real SIP/RTP media,
-  and a foreground service so calls survive backgrounding.
-- **FastAPI + Postgres control plane** — users, private numbers, device
-  pairing, call authorization. It never touches audio.
-- **Asterisk** as the telephony engine, reading its PJSIP endpoints straight
-  out of Postgres via realtime config. DTMF is negotiated as RFC 4733, so
-  tones ride the RTP stream properly rather than being faked in-band.
-- **Control plane and media plane kept strictly separate** — voice never goes
-  through an HTTP request. That split is the single most important
-  architectural decision in the project.
-
-**A detail I didn't expect to matter:** caller ID. If someone calls you from a
-NexTelis number that isn't in your phone's contacts, Android has nothing to
-show. So the app asks the backend who owns that number and injects the name
-into the native call screen before it finishes ringing. Small thing. Makes it
+One small detail that mattered more than expected was caller ID. If someone
+calls from a NexTelis number that is not saved in your contacts, Android has
+no name to show. So the app asks the server who owns that number and puts the
+name on the call screen while it is still ringing. Small thing, but it makes it
 feel real.
 
-**And one that taught me the most:** the original device re-pairing flow let
-you recover an account using only an email address. Convenient — and a
-complete account-takeover hole. Anyone who knew your email could pair their
-phone to your number. Fixing it properly meant a one-time recovery code,
-hashed server-side, shown exactly once at registration. No email
-infrastructure needed, and it still works if you lose every device you own.
-I'd written it down as an "acceptable pilot tradeoff." It wasn't. Shipping a
-thing called v1 with that in it would have been lying about what v1 was.
+One thing taught me a lesson. The first version let you recover an account
+using only an email address. Convenient, and also a complete security hole,
+because anyone who knew your email could pair their own phone to your number.
+I had written it down as an acceptable tradeoff for an early build. It was not.
+Fixing it meant a one time recovery code, hashed on the server, shown once when
+you register. No email system needed, and it still works if you lose every
+device you own.
 
-**What it isn't, honestly:**
+Being honest about what it is not. It has been tested on a local network, not
+the open internet, so NAT traversal is the next hard problem. There is no TLS
+yet, so this is a trusted network system for now. And OnePlus phones running
+OxygenOS remove the calling accounts settings screen completely, so the app
+registers fine and can then never be switched on. There is no way around it,
+because Android deliberately has no API to enable a calling account without the
+user doing it themselves in settings. Samsung is the supported target for now.
 
-Verified on a LAN, not the open Internet — NAT traversal is the next hard
-problem. No TLS yet, so this is a trusted-network system today. And OnePlus's
-OxygenOS strips out the calling-accounts settings screen entirely, so the app
-registers correctly and can then never be switched on. There's no workaround —
-Android deliberately offers no API to enable a calling account without the
-user doing it in system Settings. Samsung One UI is the supported target.
+All of that is written in the docs rather than hidden, because the point of a
+first version is knowing exactly what you have proven.
 
-Every one of those is written down in the docs rather than glossed over,
-because the point of a v1 is to know exactly what you've proven.
+The bigger idea is that calling is only a closed system because we stopped
+treating it as software. Asterisk, SIP, and an Android API that genuinely lets
+an outside app be a calling provider are all sitting there, open and mature,
+and hardly anyone uses them this way.
 
-**The bigger idea:** telephony is only a walled garden because we stopped
-treating it as software. The tools to run your own voice network — Asterisk,
-SIP, and an Android API surface that will genuinely let a third party be a
-calling provider — are all sitting there, open, mature, and largely unused for
-this.
-
-Next up: native call history, contacts integration, and making it survive a
+Next up is native call history, contacts integration, and making it survive a
 real network instead of a friendly one.
 
-*#Android #Kotlin #Telephony #SIP #Asterisk #VoIP #OpenSource #SelfHosted*
+#Android #Kotlin #Telephony #SIP #Asterisk #VoIP #OpenSource #SelfHosted
+
