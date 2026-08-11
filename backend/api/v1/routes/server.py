@@ -9,15 +9,18 @@ router = APIRouter(prefix="/server", tags=["server"])
 @router.get("/info", response_model=ServerInfo)
 async def get_server_info() -> ServerInfo:
     """
-    Tells a device where to send SIP traffic.
+    Tells a device where to send SIP traffic and over which transport.
 
-    Unauthenticated on purpose: the device needs this before it has a token,
-    and it exposes only an address the device is about to connect to anyway.
+    Unauthenticated on purpose: a device needs this before it has a token,
+    and it reveals only an address the device is about to connect to anyway.
 
-    The SIP host is configured separately from the API's address because the
-    two do not have to be reachable the same way. The API may sit behind a
-    reverse proxy or an HTTP tunnel; SIP and RTP are UDP and cannot traverse
-    one, so devices need a directly routable address for Asterisk.
+    Configured rather than derived from the request, because the API and
+    Asterisk don't have to be reachable the same way — the API can sit behind
+    a proxy or tunnel that SIP cannot traverse.
     """
     settings = get_settings()
-    return ServerInfo(sip_host=settings.sip_host, sip_port=settings.sip_port)
+    return ServerInfo(
+        sip_host=settings.sip_host,
+        sip_port=settings.sip_port,
+        sip_transport=settings.sip_transport,
+    )

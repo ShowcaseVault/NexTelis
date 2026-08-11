@@ -82,15 +82,16 @@ data class NumberLookupResult(
 )
 
 /**
- * Where this deployment's SIP server lives. Separate from the API's address
- * because SIP/RTP are UDP and can't traverse an HTTP tunnel or proxy that the
- * API may sit behind. Null sip_host means the server didn't configure one, so
- * the device should fall back to the API host.
+ * Where and how to reach this deployment's SIP service. Separate from the
+ * API's address because SIP/RTP are UDP and can't traverse an HTTP tunnel or
+ * proxy the API may sit behind. sip_transport covers signalling only — media
+ * is RTP over UDP regardless.
  */
 @JsonClass(generateAdapter = true)
 data class ServerInfo(
-    val sip_host: String?,
-    val sip_port: Int
+    val sip_host: String,
+    val sip_port: Int,
+    val sip_transport: String
 )
 
 // Mirrors backend/api/v1/routes (users, devices, numbers) — see docs/ARCHITECTURE.md for the control-plane contract.

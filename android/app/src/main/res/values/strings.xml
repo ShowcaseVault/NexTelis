@@ -11,8 +11,8 @@
     <string name="server_setup_host_hint">Server address</string>
     <string name="server_setup_examples">Include the port only if the server uses one:\n• 192.168.1.50:8000 — a machine on your network\n• calls.example.com — a hosted server\n• abc123.ngrok-free.app — a tunnel (no port)</string>
     <string name="server_setup_error_host_required">Enter a server address.</string>
-    <string name="server_setup_error_unreachable">Couldn\'t reach that server. Check the address and that the server is running.</string>
     <string name="server_setup_error_address_invalid">That server address isn\'t valid. Use a domain or an IP, optionally with :port.</string>
+    <string name="server_setup_error_unreachable">Couldn\'t reach that server. Check the address and that the server is running.</string>
     <string name="btn_connect">Connect</string>
 
     <!-- Pair device -->

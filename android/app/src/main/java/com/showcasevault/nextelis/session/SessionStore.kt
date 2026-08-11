@@ -18,6 +18,11 @@ object SessionStore {
     private const val KEY_SERVER_PORT = "server_port"
     private const val KEY_SERVER_SCHEME = "server_scheme"
     private const val KEY_SIP_HOST = "sip_host"
+    private const val KEY_SIP_PORT = "sip_port"
+    private const val KEY_SIP_TRANSPORT = "sip_transport"
+
+    const val DEFAULT_SIP_PORT = 5060
+    const val DEFAULT_SIP_TRANSPORT = "udp"
 
     // A bare LAN address has no TLS in front of it, so it stays http. A domain
     // is assumed to be a real deployment behind a reverse proxy on 443.
@@ -68,19 +73,28 @@ object SessionStore {
         return "${getServerScheme(context)}://$authority/"
     }
 
-    /** Caches the SIP host the server reported. Null clears it. */
-    fun saveSipHost(context: Context, sipHost: String?) {
-        prefs(context).edit().putString(KEY_SIP_HOST, sipHost).apply()
+    /** Caches what /server/info reported, fetched during server setup. */
+    fun saveSipConfig(context: Context, host: String, port: Int, transport: String) {
+        prefs(context).edit()
+            .putString(KEY_SIP_HOST, host)
+            .putInt(KEY_SIP_PORT, port)
+            .putString(KEY_SIP_TRANSPORT, transport)
+            .apply()
     }
 
     /**
-     * Where to send SIP traffic. Falls back to the API host when the server
-     * doesn't declare one, which is correct only when the API and Asterisk
-     * share an address — notably NOT when the API is behind an HTTP tunnel,
-     * since SIP is UDP and cannot traverse one.
+     * Where to send SIP traffic. Falls back to the API host for installs
+     * paired before the server started reporting this, which is correct
+     * whenever the API and Asterisk share an address.
      */
     fun getSipHost(context: Context): String? =
         prefs(context).getString(KEY_SIP_HOST, null) ?: getServerHost(context)
+
+    fun getSipPort(context: Context): Int =
+        prefs(context).getInt(KEY_SIP_PORT, DEFAULT_SIP_PORT)
+
+    fun getSipTransport(context: Context): String =
+        prefs(context).getString(KEY_SIP_TRANSPORT, null) ?: DEFAULT_SIP_TRANSPORT
 
     fun savePairing(context: Context, userId: String, deviceToken: String, displayName: String) {
         prefs(context).edit()

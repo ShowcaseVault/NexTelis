@@ -49,14 +49,20 @@ object SipManager {
         newCore.start()
 
         val host = sipHost()
+        val port = SessionStore.getSipPort(context)
+        val transport = sipTransport(context)
+
+        // The identity and auth realm are the domain alone — Asterisk
+        // challenges on the domain, so a port there fails authentication.
+        // Only the proxy address, the actual transport target, carries it.
         val identity = factory.createAddress("sip:$number@$host")
-        val serverAddress = factory.createAddress("sip:$host")
+        val serverAddress = factory.createAddress("sip:$host:$port")
         if (identity == null || serverAddress == null) {
-            Log.e(TAG, "Failed to build SIP addresses for $number@$host")
+            Log.e(TAG, "Failed to build SIP addresses for $number@$host:$port")
             return
         }
-        identity.transport = TransportType.Udp
-        serverAddress.transport = TransportType.Udp
+        identity.transport = transport
+        serverAddress.transport = transport
 
         val authInfo = factory.createAuthInfo(number, null, sipPassword, null, null, host)
         newCore.addAuthInfo(authInfo)
@@ -77,7 +83,7 @@ object SipManager {
         newCore.defaultAccount = account
 
         core = newCore
-        Log.d(TAG, "Registering $number@$host")
+        Log.d(TAG, "Registering $number@$host:$port over $transport")
     }
 
     fun stop() {
@@ -123,16 +129,23 @@ object SipManager {
     }
 
     /**
-     * Where Asterisk is reachable. Usually the same address configured for the
-     * API, but not always: the API can sit behind a reverse proxy or an HTTP
-     * tunnel, whereas SIP is UDP and must reach the server directly. The
-     * backend reports the right host via /server/info.
+     * Where Asterisk is reachable, as reported by /server/info during server
+     * setup. Usually the same address as the API, but not necessarily: the
+     * API can sit behind a proxy or tunnel that SIP and RTP cannot traverse.
      */
     private fun sipHost(): String {
         val context = appContext ?: error("SipManager.start() must be called before placing/receiving calls")
         return SessionStore.getSipHost(context)
             ?: error("No NexTelis server configured — set one via the Connect to Server screen.")
     }
+
+    /** Signalling transport only; RTP media is UDP under all of these. */
+    private fun sipTransport(context: Context): TransportType =
+        when (SessionStore.getSipTransport(context).lowercase()) {
+            "tcp" -> TransportType.Tcp
+            "tls" -> TransportType.Tls
+            else -> TransportType.Udp
+        }
 
     private val coreListener = object : CoreListenerStub() {
         override fun onAccountRegistrationStateChanged(

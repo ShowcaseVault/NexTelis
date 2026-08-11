@@ -67,21 +67,26 @@ class ServerSetupActivity : AppCompatActivity() {
         )
         NexTelisApiClient.reset()
 
-        // Ask the server where its SIP service lives before moving on. This
-        // also doubles as a reachability check on the address just entered,
-        // so a typo is reported here rather than surfacing much later as a
-        // failed registration.
+        // Fetch the SIP details before moving on. This doubles as a
+        // reachability check on the address just entered, so a typo is
+        // reported here rather than surfacing later as a registration that
+        // never completes.
         btnConnect.isEnabled = false
         lifecycleScope.launch {
-            val sipHost = try {
-                NexTelisApiClient.api.getServerInfo().sip_host
+            val info = try {
+                NexTelisApiClient.api.getServerInfo()
             } catch (e: Exception) {
                 Log.w(TAG, "Couldn't reach ${address.host}: ${e.message}")
                 btnConnect.isEnabled = true
                 showError(getString(R.string.server_setup_error_unreachable))
                 return@launch
             }
-            SessionStore.saveSipHost(this@ServerSetupActivity, sipHost)
+            SessionStore.saveSipConfig(
+                this@ServerSetupActivity,
+                host = info.sip_host,
+                port = info.sip_port,
+                transport = info.sip_transport,
+            )
             AppFlow.routeFromLaunch(this@ServerSetupActivity)
         }
     }
