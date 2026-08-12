@@ -16,6 +16,6 @@ COPY config/odbc.ini.template /etc/odbc.ini.template
 COPY scripts/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-EXPOSE 5060/udp 5060/tcp 10000-20000/udp
+EXPOSE 5060/udp 5060/tcp 5061/tcp 10000-20000/udp
 
 ENTRYPOINT ["/entrypoint.sh"]

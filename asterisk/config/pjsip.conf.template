@@ -5,12 +5,17 @@ bind=0.0.0.0:5060
 
 ; TCP holds the connection open, so Asterisk can reach a device behind NAT
 ; without relying on UDP registration refreshes. Media is still RTP over UDP
-; either way — this only affects signalling. Also the stepping stone to TLS,
-; which is TCP-based.
+; either way — this only affects signalling. Also the stepping stone to TLS.
 [transport-tcp]
 type=transport
 protocol=tcp
 bind=0.0.0.0:5060
+
+; transport-tls is appended by entrypoint.sh, only when SIP_TLS_CERT_PATH and
+; SIP_TLS_KEY_PATH are both set — see pjsip.conf.tls.template. Left out here
+; unconditionally: pjsip.conf has no way to make a stanza optional, and
+; loading transport-tls with an unset/unreadable cert fails Asterisk's
+; startup with an ERROR for every system that hasn't provisioned one.
 
 ; Endpoints/auths/aors are realtime — served from Postgres (ps_endpoints,
 ; ps_auths, ps_aors) via res_config_odbc, see sorcery.conf/extconfig.conf.

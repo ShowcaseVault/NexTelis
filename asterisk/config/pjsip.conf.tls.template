@@ -1,0 +1,11 @@
+; TLS encrypts signalling only (credentials, headers) — RTP media stays
+; plain RTP/UDP regardless. Cert/key paths come from .env so they aren't
+; baked into this repo; provisioned by certbot against the public domain
+; devices are given via /server/info, not a bare IP (Let's Encrypt won't
+; issue for an IP, and phones can't validate a cert against one anyway).
+[transport-tls]
+type=transport
+protocol=tls
+bind=0.0.0.0:5061
+cert_file=${SIP_TLS_CERT_PATH}
+priv_key_file=${SIP_TLS_KEY_PATH}

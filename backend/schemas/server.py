@@ -14,4 +14,4 @@ class ServerInfo(BaseModel):
     sip_host: str
     sip_port: int
     # Signalling transport only — RTP media is UDP regardless.
-    sip_transport: Literal["udp", "tcp"]
+    sip_transport: Literal["udp", "tcp", "tls"]

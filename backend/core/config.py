@@ -43,8 +43,11 @@ class Settings(BaseSettings):
     sip_port: int = 5060
     # udp is the SIP default and what pjsip.conf binds first. tcp keeps the
     # connection open, which survives NAT without registration refreshes.
-    # Media stays RTP/UDP under all of these — this is signalling only.
-    sip_transport: Literal["udp", "tcp"] = "udp"
+    # tls additionally encrypts signalling (pjsip.conf's transport-tls,
+    # normally on 5061) and requires sip_host to be a real hostname, since
+    # certs can't be issued for a bare IP. Media stays RTP/UDP under all of
+    # these — this is signalling only.
+    sip_transport: Literal["udp", "tcp", "tls"] = "udp"
 
     # Fernet key encrypting secrets-at-rest (e.g. numbers.sip_password).
     # Generate with: python -c "from cryptography.fernet import Fernet; \
